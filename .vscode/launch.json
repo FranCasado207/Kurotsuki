@@ -1,0 +1,21 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "JavaFX: Run/Debug App",
+            "request": "launch",
+            "mainClass": "pt.yaku.App",
+            "projectName": "kurotsuki",
+            "vmArgs": "--module-path ${userHome}/.m2/repository/org/openjfx/javafx-base/25/javafx-base-25-linux.jar:${userHome}/.m2/repository/org/openjfx/javafx-graphics/25/javafx-graphics-25-linux.jar:${userHome}/.m2/repository/org/openjfx/javafx-controls/25/javafx-controls-25-linux.jar --add-modules javafx.controls --enable-native-access=javafx.graphics"
+        },
+        {
+            "type": "java",
+            "name": "JavaFX: Debug via Maven (javafx:run@debug)",
+            "request": "attach",
+            "hostName": "localhost",
+            "port": 5005,
+            "preLaunchTask": "mvn: javafx:run (debug)"
+        }
+    ]
+}

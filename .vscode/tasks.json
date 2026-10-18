@@ -1,0 +1,53 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "mvn: javafx:run",
+            "type": "shell",
+            "command": "mvn javafx:run",
+            "group": { "kind": "build", "isDefault": true },
+            "problemMatcher": []
+        },
+        {
+            "label": "mvn: javafx:run (debug)",
+            "type": "shell",
+            "command": "mvn compile javafx:run@debug",
+            "isBackground": true,
+            "problemMatcher": {
+                "owner": "java",
+                "pattern": { "regexp": "^(\\[ERROR\\]) (.*)$", "severity": 1, "message": 2 },
+                "background": {
+                    "activeBegin": "\\[INFO\\] Scanning for projects",
+                    "activeEnd": "Listening for transport dt_socket"
+                }
+            }
+        },
+        {
+            "label": "mvn: compile",
+            "type": "shell",
+            "command": "mvn compile",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "mvn: clean",
+            "type": "shell",
+            "command": "mvn clean",
+            "problemMatcher": []
+        },
+        {
+            "label": "mvn: package",
+            "type": "shell",
+            "command": "mvn clean package",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "mvn: test",
+            "type": "shell",
+            "command": "mvn test",
+            "group": "test",
+            "problemMatcher": []
+        }
+    ]
+}
