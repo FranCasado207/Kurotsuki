@@ -11,17 +11,21 @@ import java.util.function.Supplier;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import pt.yaku.client.GelbooruPost;
+import pt.yaku.booru.Post;
 import pt.yaku.download.DownloadItem.Status;
 import pt.yaku.ui.ImageLoader;
 import pt.yaku.i18n.Messages;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 public class DownloadQueue {
 
     private static final int PARALLEL_DOWNLOADS = 2;
 
     private final Supplier<String> downloadFolder;
     private final Consumer<String> onError;
+    @Getter
     private final ObservableList<DownloadItem> items = FXCollections.observableArrayList();
     private final ExecutorService executor = Executors.newFixedThreadPool(PARALLEL_DOWNLOADS, runnable -> {
         Thread thread = new Thread(runnable, "download-queue");
@@ -29,23 +33,16 @@ public class DownloadQueue {
         return thread;
     });
 
-    public DownloadQueue(Supplier<String> downloadFolder, Consumer<String> onError) {
-        this.downloadFolder = downloadFolder;
-        this.onError = onError;
+
+
+    public boolean contains(String key) {
+        return items.stream().anyMatch(item -> item.getPost().key().equals(key));
     }
 
-    public ObservableList<DownloadItem> getItems() {
-        return items;
-    }
-
-    public boolean contains(long postId) {
-        return items.stream().anyMatch(item -> item.getPost().getId() == postId);
-    }
-
-    public void toggle(GelbooruPost post) {
-        if (contains(post.getId())) {
+    public void toggle(Post post) {
+        if (contains(post.key())) {
             items.stream()
-                    .filter(item -> item.getPost().getId() == post.getId())
+                    .filter(item -> item.getPost().key().equals(post.key()))
                     .findFirst()
                     .ifPresent(this::remove);
         } else {
@@ -96,7 +93,7 @@ public class DownloadQueue {
         }, executor);
     }
 
-    private static String fileNameOf(GelbooruPost post) {
+    private static String fileNameOf(Post post) {
         if (post.getImage() != null && !post.getImage().isBlank()) {
             return post.getImage();
         }

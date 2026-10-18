@@ -17,7 +17,8 @@ import pt.yaku.favorites.Favorites;
 import pt.yaku.i18n.Messages;
 import pt.yaku.library.Library;
 import pt.yaku.user.config.BooruConfiguration;
-import pt.yaku.user.config.preconfigured.GelbooruConfiguration;
+import pt.yaku.user.config.BooruType;
+import lombok.Getter;
 
 public class Sidebar {
 
@@ -28,7 +29,9 @@ public class Sidebar {
     private static final int SUGGESTION_LIMIT = 10;
 
     private final ApplicationContext context;
+    @Getter
     private final VBox searchNode = new VBox(10);
+    @Getter
     private final VBox favoriteTagsNode = new VBox(10);
     private final ListView<BooruConfiguration> booruList = new ListView<>();
     private final TextField searchField = new TextField();
@@ -106,13 +109,7 @@ public class Sidebar {
         favoriteTagsNode.getChildren().addAll(favTagsTitle, tagList);
     }
 
-    public VBox getSearchNode() {
-        return searchNode;
-    }
 
-    public VBox getFavoriteTagsNode() {
-        return favoriteTagsNode;
-    }
 
     public void reload() {
         booruList.getItems().setAll(context.getUserConfig().getBooruConfigurations());
@@ -120,16 +117,10 @@ public class Sidebar {
 
     private List<String> suggestTags(String prefix) throws Exception {
         BooruConfiguration booru = currentBooru;
-        if (!(booru instanceof GelbooruConfiguration gelbooru)) {
+        if (booru == null || booru.getBooruType() == BooruType.GENERIC) {
             return List.of();
         }
-        return context.getRestConfig().gelbooru(gelbooru).listTags(
-                "dapi", "tag", "index",
-                gelbooru.getApiKey(), gelbooru.getUserId(),
-                prefix + "%", SUGGESTION_LIMIT, "count", "DESC", 1)
-                .stream()
-                .map(tag -> tag.getName())
-                .toList();
+        return context.getRestConfig().clientFor(booru).suggestTags(prefix, SUGGESTION_LIMIT);
     }
 
     private static String describe(BooruConfiguration booru) {

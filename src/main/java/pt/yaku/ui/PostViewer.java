@@ -26,7 +26,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import pt.yaku.cache.CacheManager;
-import pt.yaku.client.GelbooruPost;
+import pt.yaku.booru.Post;
 import pt.yaku.context.ApplicationContext;
 import pt.yaku.favorites.Favorites;
 import pt.yaku.i18n.Messages;
@@ -37,7 +37,7 @@ public class PostViewer extends Stage {
     private static final Set<String> VIDEO_EXTENSIONS = Set.of("mp4", "webm", "mov", "m4v");
 
     private final ApplicationContext context;
-    private final GelbooruPost post;
+    private final Post post;
     private final StackPane center = new StackPane();
     private final Label status = new Label(Messages.get("viewer.loading"));
     private final Button downloadButton = new Button(Messages.get("common.download"));
@@ -45,7 +45,7 @@ public class PostViewer extends Stage {
     private Node media;
 
     public PostViewer(Stage owner, ApplicationContext context, Favorites favorites,
-                      GelbooruPost post, Consumer<String> onTagSearch) {
+                      Post post, Consumer<String> onTagSearch) {
         this.context = context;
         this.post = post;
 

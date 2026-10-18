@@ -24,11 +24,12 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
-import pt.yaku.client.GelbooruPost;
+import pt.yaku.booru.Post;
 import pt.yaku.download.DownloadItem;
 import pt.yaku.library.Library;
 import pt.yaku.library.PostFolder;
 import pt.yaku.i18n.Messages;
+import lombok.Getter;
 
 public class ImageGrid {
 
@@ -37,14 +38,15 @@ public class ImageGrid {
     private static final String QUEUED_BORDER = "-fx-border-color: #3a7bd5; -fx-border-width: 3;";
 
     private final Library library;
+    @Getter
     private final VBox node = new VBox(5);
     private final Label status = new Label(Messages.get("grid.initial"));
     private final TilePane tiles = new TilePane(10, 10);
     private final ScrollPane scroll = new ScrollPane(tiles);
     private Runnable onNearBottom;
-    private Consumer<GelbooruPost> onPostClicked;
+    private Consumer<Post> onPostClicked;
     private String removeLabel;
-    private Consumer<GelbooruPost> removeAction;
+    private Consumer<Post> removeAction;
 
     private final ListChangeListener<DownloadItem> queueListener = change -> refreshQueueMarks();
 
@@ -69,19 +71,16 @@ public class ImageGrid {
         node.getChildren().addAll(status, scroll);
     }
 
-    public Node getNode() {
-        return node;
-    }
 
     public void setOnNearBottom(Runnable onNearBottom) {
         this.onNearBottom = onNearBottom;
     }
 
-    public void setOnPostClicked(Consumer<GelbooruPost> onPostClicked) {
+    public void setOnPostClicked(Consumer<Post> onPostClicked) {
         this.onPostClicked = onPostClicked;
     }
 
-    public void setRemoveAction(String label, Consumer<GelbooruPost> action) {
+    public void setRemoveAction(String label, Consumer<Post> action) {
         this.removeLabel = label;
         this.removeAction = action;
     }
@@ -91,13 +90,13 @@ public class ImageGrid {
         status.setText(Messages.get("grid.searching"));
     }
 
-    public void showPosts(List<GelbooruPost> posts) {
+    public void showPosts(List<Post> posts) {
         tiles.getChildren().clear();
         appendPosts(posts);
     }
 
-    public void appendPosts(List<GelbooruPost> posts) {
-        for (GelbooruPost post : posts) {
+    public void appendPosts(List<Post> posts) {
+        for (Post post : posts) {
             if (post.getPreviewUrl() != null) {
                 tiles.getChildren().add(thumbnail(post));
             }
@@ -130,7 +129,7 @@ public class ImageGrid {
 
     private void refreshQueueMarks() {
         for (Node tile : tiles.getChildren()) {
-            if (tile.getUserData() instanceof Long postId) {
+            if (tile.getUserData() instanceof String postId) {
                 applyQueueMark(tile, library.queue().contains(postId));
             }
         }
@@ -141,7 +140,7 @@ public class ImageGrid {
         ((Label) ((StackPane) tile).getChildren().get(1)).setVisible(queued);
     }
 
-    private StackPane thumbnail(GelbooruPost post) {
+    private StackPane thumbnail(Post post) {
         ImageView view = new ImageView();
         view.setFitWidth(THUMBNAIL_SIZE);
         view.setFitHeight(THUMBNAIL_SIZE);
@@ -154,14 +153,14 @@ public class ImageGrid {
 
         StackPane tile = new StackPane(view, badge);
         tile.setCursor(Cursor.HAND);
-        tile.setUserData(post.getId());
+        tile.setUserData(post.key());
         tile.setOnMouseClicked(event -> {
             if (event.getButton() == MouseButton.PRIMARY && onPostClicked != null) {
                 onPostClicked.accept(post);
             }
         });
         tile.setOnContextMenuRequested(event -> buildMenu(post, tile).show(tile, event.getScreenX(), event.getScreenY()));
-        applyQueueMark(tile, library.queue().contains(post.getId()));
+        applyQueueMark(tile, library.queue().contains(post.key()));
         Tooltip.install(tile, new Tooltip("ID " + post.getId() + " - " + post.getRating()
                 + "\n" + post.getTags()));
 
@@ -173,7 +172,7 @@ public class ImageGrid {
         return tile;
     }
 
-    private ContextMenu buildMenu(GelbooruPost post, Node tile) {
+    private ContextMenu buildMenu(Post post, Node tile) {
         MenuItem favoriteItem = new MenuItem();
         favoriteItem.setOnAction(event -> library.favorites().togglePost(post));
 
@@ -190,19 +189,19 @@ public class ImageGrid {
         }
 
         menu.setOnShowing(event -> {
-            favoriteItem.setText(library.favorites().isPostFavorite(post.getId())
+            favoriteItem.setText(library.favorites().isPostFavorite(post.key())
                     ? Messages.get("common.unfavorite") : Messages.get("common.favorite"));
-            queueItem.setText(library.queue().contains(post.getId()) ? Messages.get("grid.removeFromQueue") : Messages.get("grid.addToQueue"));
+            queueItem.setText(library.queue().contains(post.key()) ? Messages.get("grid.removeFromQueue") : Messages.get("grid.addToQueue"));
             folderMenu.getItems().setAll(folderItems(post, tile));
         });
         return menu;
     }
 
-    private List<javafx.scene.control.MenuItem> folderItems(GelbooruPost post, Node tile) {
+    private List<javafx.scene.control.MenuItem> folderItems(Post post, Node tile) {
         List<javafx.scene.control.MenuItem> items = new java.util.ArrayList<>();
         for (PostFolder folder : library.folders().getFolders()) {
             CheckMenuItem item = new CheckMenuItem(folder.getName());
-            item.setSelected(folder.contains(post.getId()));
+            item.setSelected(folder.contains(post.key()));
             item.setOnAction(event -> {
                 if (item.isSelected()) {
                     library.folders().addPost(folder, post);

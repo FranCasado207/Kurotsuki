@@ -9,11 +9,11 @@ import java.util.function.Consumer;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.control.Tab;
-import pt.yaku.client.GelbooruPost;
+import pt.yaku.booru.Post;
 import pt.yaku.context.ApplicationContext;
 import pt.yaku.library.Library;
 import pt.yaku.user.config.TagBlacklist;
-import pt.yaku.user.config.preconfigured.GelbooruConfiguration;
+import pt.yaku.user.config.BooruConfiguration;
 import pt.yaku.i18n.Messages;
 
 public class SearchTab extends Tab {
@@ -21,7 +21,7 @@ public class SearchTab extends Tab {
     private static final int PAGE_SIZE = 100;
 
     private final ApplicationContext context;
-    private final GelbooruConfiguration booru;
+    private final BooruConfiguration booru;
     private final String tags;
     private final ImageGrid imageGrid;
 
@@ -31,8 +31,8 @@ public class SearchTab extends Tab {
     private boolean exhausted;
     private boolean closed;
 
-    public SearchTab(ApplicationContext context, Library library, GelbooruConfiguration booru,
-                     String tags, Consumer<GelbooruPost> onPostClicked) {
+    public SearchTab(ApplicationContext context, Library library, BooruConfiguration booru,
+                     String tags, Consumer<Post> onPostClicked) {
         this.context = context;
         this.booru = booru;
         this.tags = tags == null || tags.isBlank() ? null : tags.trim();
@@ -64,13 +64,10 @@ public class SearchTab extends Tab {
         Set<String> blocked = new HashSet<>(Objects.requireNonNullElse(
                 context.getUserConfig().getBlacklistedTags(), List.of()));
 
-        Task<List<GelbooruPost>> task = new Task<>() {
+        Task<List<Post>> task = new Task<>() {
             @Override
-            protected List<GelbooruPost> call() {
-                return context.getRestConfig().gelbooru(booru).listPosts(
-                        "dapi", "post", "index",
-                        booru.getApiKey(), booru.getUserId(),
-                        PAGE_SIZE, page, tags, null, null, 1);
+            protected List<Post> call() {
+                return context.getRestConfig().clientFor(booru).searchPosts(tags, page, PAGE_SIZE);
             }
         };
         task.setOnSucceeded(event -> {
@@ -78,12 +75,11 @@ public class SearchTab extends Tab {
                 return;
             }
             loading = false;
-            List<GelbooruPost> received = task.getValue();
-            received.forEach(post -> post.setBooruBaseUrl(booru.getBaseUrl()));
+            List<Post> received = task.getValue();
             nextPage = page + 1;
             exhausted = received.size() < PAGE_SIZE;
 
-            List<GelbooruPost> visible = received.stream()
+            List<Post> visible = received.stream()
                     .filter(post -> !TagBlacklist.isBlocked(post, blocked))
                     .toList();
             int hidden = received.size() - visible.size();
@@ -108,7 +104,7 @@ public class SearchTab extends Tab {
             }
         });
 
-        Thread thread = new Thread(task, "gelbooru-search");
+        Thread thread = new Thread(task, "booru-search");
         thread.setDaemon(true);
         thread.start();
     }

@@ -3,7 +3,7 @@ package pt.yaku.user.config;
 import java.util.Collection;
 import java.util.Locale;
 
-import pt.yaku.client.GelbooruPost;
+import pt.yaku.booru.Post;
 
 public final class TagBlacklist {
 
@@ -17,7 +17,7 @@ public final class TagBlacklist {
         return tag.trim().toLowerCase(Locale.ROOT).replace(' ', '_');
     }
 
-    public static boolean isBlocked(GelbooruPost post, Collection<String> blacklist) {
+    public static boolean isBlocked(Post post, Collection<String> blacklist) {
         if (blacklist == null || blacklist.isEmpty() || post.getTags() == null) {
             return false;
         }

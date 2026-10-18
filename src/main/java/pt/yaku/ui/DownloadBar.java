@@ -16,9 +16,11 @@ import pt.yaku.download.DownloadItem.Status;
 import pt.yaku.download.DownloadQueue;
 import pt.yaku.library.Library;
 import pt.yaku.i18n.Messages;
+import lombok.Getter;
 
 public class DownloadBar {
 
+    @Getter
     private final VBox node = new VBox(6);
 
     public DownloadBar(Library library) {
@@ -47,9 +49,6 @@ public class DownloadBar {
         node.getChildren().addAll(header, list);
     }
 
-    public Node getNode() {
-        return node;
-    }
 
     private static class DownloadCell extends ListCell<DownloadItem> {
 

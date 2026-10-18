@@ -8,16 +8,19 @@ import java.util.function.Consumer;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import pt.yaku.client.GelbooruPost;
+import pt.yaku.booru.Post;
 import pt.yaku.context.ApplicationContext;
 import pt.yaku.i18n.Messages;
+import lombok.Getter;
 
 public class Favorites {
 
     private final ApplicationContext context;
     private final Consumer<String> onError;
+    @Getter
     private final ObservableList<String> tags;
-    private final ObservableList<GelbooruPost> posts;
+    @Getter
+    private final ObservableList<Post> posts;
 
     public Favorites(ApplicationContext context, Consumer<String> onError) {
         this.context = context;
@@ -28,13 +31,7 @@ public class Favorites {
                 Objects.requireNonNullElse(context.getUserConfig().getFavoritePosts(), List.of()));
     }
 
-    public ObservableList<String> getTags() {
-        return tags;
-    }
 
-    public ObservableList<GelbooruPost> getPosts() {
-        return posts;
-    }
 
     public boolean isTagFavorite(String tag) {
         return tags.contains(tag);
@@ -47,12 +44,12 @@ public class Favorites {
         persist();
     }
 
-    public boolean isPostFavorite(long id) {
-        return posts.stream().anyMatch(post -> post.getId() == id);
+    public boolean isPostFavorite(String key) {
+        return posts.stream().anyMatch(post -> post.key().equals(key));
     }
 
-    public void togglePost(GelbooruPost post) {
-        if (!posts.removeIf(favorite -> favorite.getId() == post.getId())) {
+    public void togglePost(Post post) {
+        if (!posts.removeIf(favorite -> favorite.key().equals(post.key()))) {
             posts.add(post);
         }
         persist();

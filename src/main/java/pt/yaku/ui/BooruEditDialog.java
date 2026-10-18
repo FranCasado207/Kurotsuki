@@ -14,6 +14,7 @@ import javafx.scene.layout.GridPane;
 import javafx.stage.Window;
 import pt.yaku.user.config.BooruConfiguration;
 import pt.yaku.user.config.BooruType;
+import pt.yaku.user.config.preconfigured.DanbooruConfiguration;
 import pt.yaku.user.config.preconfigured.GelbooruConfiguration;
 import pt.yaku.i18n.Messages;
 
@@ -22,6 +23,7 @@ public class BooruEditDialog extends Dialog<BooruConfiguration> {
     private final ComboBox<BooruType> typeBox = new ComboBox<>();
     private final TextField baseUrlField = new TextField();
     private final TextField apiKeyField = new TextField();
+    private final Label apiKeyLabel = new Label(Messages.get("booruEdit.apiKey"));
     private final Label userIdLabel = new Label(Messages.get("booruEdit.userId"));
     private final TextField userIdField = new TextField();
 
@@ -36,7 +38,9 @@ public class BooruEditDialog extends Dialog<BooruConfiguration> {
         if (existing != null) {
             baseUrlField.setText(Objects.toString(existing.getCustomBaseUrl(), ""));
             apiKeyField.setText(Objects.toString(existing.getApiKey(), ""));
-            if (existing instanceof GelbooruConfiguration gelbooru) {
+            if (existing instanceof DanbooruConfiguration danbooru) {
+                userIdField.setText(Objects.toString(danbooru.getLogin(), ""));
+            } else if (existing instanceof GelbooruConfiguration gelbooru) {
                 userIdField.setText(Objects.toString(gelbooru.getUserId(), ""));
             }
         }
@@ -48,7 +52,7 @@ public class BooruEditDialog extends Dialog<BooruConfiguration> {
         grid.setPadding(new Insets(15));
         grid.addRow(0, new Label(Messages.get("booruEdit.type")), typeBox);
         grid.addRow(1, new Label(Messages.get("booruEdit.baseUrl")), baseUrlField);
-        grid.addRow(2, new Label(Messages.get("booruEdit.apiKey")), apiKeyField);
+        grid.addRow(2, apiKeyLabel, apiKeyField);
         grid.addRow(3, userIdLabel, userIdField);
 
         getDialogPane().setContent(grid);
@@ -63,11 +67,17 @@ public class BooruEditDialog extends Dialog<BooruConfiguration> {
     }
 
     private void onTypeChanged(BooruType type) {
-        boolean gelbooru = type == BooruType.GELBOORU;
-        userIdLabel.setVisible(gelbooru);
-        userIdLabel.setManaged(gelbooru);
-        userIdField.setVisible(gelbooru);
-        userIdField.setManaged(gelbooru);
+        boolean hasUserId = type == BooruType.GELBOORU || type == BooruType.DANBOORU;
+        userIdLabel.setText(Messages.get(type == BooruType.DANBOORU ? "booruEdit.login" : "booruEdit.userId"));
+        userIdLabel.setVisible(hasUserId);
+        userIdLabel.setManaged(hasUserId);
+        userIdField.setVisible(hasUserId);
+        userIdField.setManaged(hasUserId);
+        boolean usesApiKey = type != BooruType.SAFEBOORU;
+        apiKeyLabel.setVisible(usesApiKey);
+        apiKeyLabel.setManaged(usesApiKey);
+        apiKeyField.setVisible(usesApiKey);
+        apiKeyField.setManaged(usesApiKey);
 
         String defaultUrl = type.getDefaultBaseUrl();
         baseUrlField.setPromptText(defaultUrl != null ? defaultUrl : Messages.get("booruEdit.urlRequired"));
@@ -80,6 +90,10 @@ public class BooruEditDialog extends Dialog<BooruConfiguration> {
             GelbooruConfiguration gelbooru = new GelbooruConfiguration();
             gelbooru.setUserId(blankToNull(userIdField.getText()));
             booru = gelbooru;
+        } else if (type == BooruType.DANBOORU) {
+            DanbooruConfiguration danbooru = new DanbooruConfiguration();
+            danbooru.setLogin(blankToNull(userIdField.getText()));
+            booru = danbooru;
         } else {
             booru = new BooruConfiguration();
             booru.setBooruType(type);

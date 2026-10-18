@@ -18,7 +18,7 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
-import pt.yaku.client.GelbooruPost;
+import pt.yaku.booru.Post;
 import pt.yaku.context.ApplicationContext;
 import pt.yaku.i18n.Messages;
 import pt.yaku.layout.Dock;
@@ -27,7 +27,8 @@ import pt.yaku.layout.PanelLayout;
 import pt.yaku.library.Library;
 import pt.yaku.library.PostFolder;
 import pt.yaku.user.config.BooruConfiguration;
-import pt.yaku.user.config.preconfigured.GelbooruConfiguration;
+import pt.yaku.client.RestClientConfiguration;
+import pt.yaku.user.config.BooruConfiguration;
 
 public class MainView {
 
@@ -148,12 +149,12 @@ public class MainView {
             showError(Messages.get("main.selectBooru"));
             return;
         }
-        if (!(booru instanceof GelbooruConfiguration gelbooru)) {
+        if (!RestClientConfiguration.hasClient(booru.getBooruType())) {
             showError(Messages.get("main.noClient"));
             return;
         }
-        context.setSelectedBooru(gelbooru);
-        addTab(new SearchTab(context, library, gelbooru, tags, this::openPost));
+        context.setSelectedBooru(booru);
+        addTab(new SearchTab(context, library, booru, tags, this::openPost));
     }
 
     private void openFolder(PostFolder folder) {
@@ -177,18 +178,18 @@ public class MainView {
         stage.setTitle(selected == null ? title : title + " - " + selected.getText());
     }
 
-    private void openPost(GelbooruPost post) {
+    private void openPost(Post post) {
         BooruConfiguration booru = booruFor(post);
         new PostViewer(stage, context, library.favorites(), post,
                 booru == null ? null : tag -> openSearch(booru, tag));
     }
 
-    private BooruConfiguration booruFor(GelbooruPost post) {
+    private BooruConfiguration booruFor(Post post) {
         if (post.getBooruBaseUrl() == null) {
             return null;
         }
         for (BooruConfiguration booru : context.getUserConfig().getBooruConfigurations()) {
-            if (booru instanceof GelbooruConfiguration && post.getBooruBaseUrl().equals(booru.getBaseUrl())) {
+            if (post.getBooruBaseUrl().equals(booru.getBaseUrl())) {
                 return booru;
             }
         }

@@ -6,20 +6,20 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import pt.yaku.client.GelbooruPost;
+import pt.yaku.booru.Post;
 import pt.yaku.i18n.Messages;
 
 public class DownloadItem {
 
     public enum Status { QUEUED, DOWNLOADING, DONE, FAILED }
 
-    private final GelbooruPost post;
+    private final Post post;
     private final ObjectProperty<Status> status = new SimpleObjectProperty<>(Status.QUEUED);
     private final DoubleProperty progress = new SimpleDoubleProperty(0);
     private final StringProperty message = new SimpleStringProperty("");
     private final StringProperty label = new SimpleStringProperty();
 
-    public DownloadItem(GelbooruPost post) {
+    public DownloadItem(Post post) {
         this.post = post;
         status.addListener((obs, oldValue, newValue) -> updateLabel());
         progress.addListener((obs, oldValue, newValue) -> updateLabel());
@@ -27,7 +27,7 @@ public class DownloadItem {
         updateLabel();
     }
 
-    public GelbooruPost getPost() {
+    public Post getPost() {
         return post;
     }
 

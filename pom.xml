@@ -6,7 +6,7 @@
   <groupId>pt.yaku</groupId>
   <artifactId>kurotsuki</artifactId>
   <packaging>jar</packaging>
-  <version>0.1</version>
+  <version>0.5</version>
   <name>kurotsuki</name>
 
   <properties>

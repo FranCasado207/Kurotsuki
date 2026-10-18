@@ -6,16 +6,16 @@ import java.util.function.Consumer;
 import javafx.collections.ListChangeListener;
 import javafx.collections.WeakListChangeListener;
 import javafx.scene.control.Tab;
-import pt.yaku.client.GelbooruPost;
+import pt.yaku.booru.Post;
 import pt.yaku.library.Library;
 import pt.yaku.library.PostFolder;
 import pt.yaku.i18n.Messages;
 
 public class FolderTab extends Tab {
 
-    private final ListChangeListener<GelbooruPost> folderListener;
+    private final ListChangeListener<Post> folderListener;
 
-    public FolderTab(Library library, PostFolder folder, Consumer<GelbooruPost> onPostClicked) {
+    public FolderTab(Library library, PostFolder folder, Consumer<Post> onPostClicked) {
         setText(folder.getName());
 
         ImageGrid grid = new ImageGrid(library);

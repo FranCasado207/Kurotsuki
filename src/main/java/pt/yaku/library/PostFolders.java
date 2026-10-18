@@ -8,15 +8,17 @@ import java.util.function.Consumer;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import pt.yaku.client.GelbooruPost;
+import pt.yaku.booru.Post;
 import pt.yaku.context.ApplicationContext;
 import pt.yaku.user.config.FolderData;
 import pt.yaku.i18n.Messages;
+import lombok.Getter;
 
 public class PostFolders {
 
     private final ApplicationContext context;
     private final Consumer<String> onError;
+    @Getter
     private final ObservableList<PostFolder> folders = FXCollections.observableArrayList();
 
     public PostFolders(ApplicationContext context, Consumer<String> onError) {
@@ -24,13 +26,10 @@ public class PostFolders {
         this.onError = onError;
         for (FolderData data : Objects.requireNonNullElse(context.getUserConfig().getPostFolders(), List.<FolderData>of())) {
             folders.add(new PostFolder(data.getName(),
-                    Objects.requireNonNullElse(data.getPosts(), List.<GelbooruPost>of())));
+                    Objects.requireNonNullElse(data.getPosts(), List.<Post>of())));
         }
     }
 
-    public ObservableList<PostFolder> getFolders() {
-        return folders;
-    }
 
     public PostFolder create(String name) {
         String trimmed = name.trim();
@@ -50,15 +49,15 @@ public class PostFolders {
         persist();
     }
 
-    public void addPost(PostFolder folder, GelbooruPost post) {
-        if (!folder.contains(post.getId())) {
+    public void addPost(PostFolder folder, Post post) {
+        if (!folder.contains(post.key())) {
             folder.getPosts().add(post);
             persist();
         }
     }
 
-    public void removePost(PostFolder folder, GelbooruPost post) {
-        if (folder.getPosts().removeIf(item -> item.getId() == post.getId())) {
+    public void removePost(PostFolder folder, Post post) {
+        if (folder.getPosts().removeIf(item -> item.key().equals(post.key()))) {
             persist();
         }
     }

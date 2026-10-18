@@ -18,11 +18,11 @@ import java.util.concurrent.Executors;
 
 import javafx.scene.image.Image;
 import pt.yaku.cache.CacheManager;
+import pt.yaku.user.config.BooruType;
 
 public final class ImageLoader {
 
-    private static final String REFERER = "https://gelbooru.com/";
-    private static final String USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64)";
+    private static final String USER_AGENT = "kurotsuki/0.5 (desktop booru client)";
 
     private static final HttpClient CLIENT = HttpClient.newBuilder()
             .followRedirects(HttpClient.Redirect.NORMAL)
@@ -47,7 +47,7 @@ public final class ImageLoader {
     public static Path downloadBlocking(String url, Path target, DoubleConsumer progress)
             throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder(URI.create(url))
-                .header("Referer", REFERER)
+                .header("Referer", BooruType.refererFor(url))
                 .header("User-Agent", USER_AGENT)
                 .GET()
                 .build();
@@ -80,7 +80,7 @@ public final class ImageLoader {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 HttpRequest request = HttpRequest.newBuilder(URI.create(url))
-                        .header("Referer", REFERER)
+                        .header("Referer", BooruType.refererFor(url))
                         .header("User-Agent", USER_AGENT)
                         .GET()
                         .build();

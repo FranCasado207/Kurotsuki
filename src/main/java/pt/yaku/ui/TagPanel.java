@@ -15,13 +15,13 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import pt.yaku.client.GelbooruPost;
+import pt.yaku.booru.Post;
 import pt.yaku.favorites.Favorites;
 import pt.yaku.i18n.Messages;
 
 public class TagPanel extends VBox {
 
-    public TagPanel(GelbooruPost post, Favorites favorites, Consumer<String> onTagSearch) {
+    public TagPanel(Post post, Favorites favorites, Consumer<String> onTagSearch) {
         setSpacing(6);
         setPadding(new Insets(10));
         setPrefWidth(340);

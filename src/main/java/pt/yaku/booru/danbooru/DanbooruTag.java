@@ -1,4 +1,4 @@
-package pt.yaku.client;
+package pt.yaku.booru.danbooru;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -7,10 +7,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class GelbooruTag {
+public class DanbooruTag {
     private long id;
     private String name;
-    private long count;
-    private int type;
-    private int ambiguous;
+    private long postCount;
 }
