@@ -6,7 +6,9 @@ import lombok.Setter;
 import pt.yaku.client.GelbooruPost;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -16,6 +18,8 @@ public class UserConfiguration {
     String downloadFolder;
     String cacheFolder;
     String language;
+    Map<String, String> panelDocks = new HashMap<>();
+    Map<String, Double> panelSizes = new HashMap<>();
     List<String> favoriteTags = new ArrayList<>();
     List<GelbooruPost> favoritePosts = new ArrayList<>();
     List<FolderData> postFolders = new ArrayList<>();

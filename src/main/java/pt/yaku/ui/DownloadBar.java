@@ -1,7 +1,6 @@
 package pt.yaku.ui;
 
 import javafx.beans.binding.Bindings;
-import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -43,9 +42,8 @@ public class DownloadBar {
         ListView<DownloadItem> list = new ListView<>(queue.getItems());
         list.setPlaceholder(new Label(Messages.get("download.empty")));
         list.setCellFactory(view -> new DownloadCell(queue));
-        list.setPrefHeight(170);
+        VBox.setVgrow(list, Priority.ALWAYS);
 
-        node.setPadding(new Insets(8, 10, 10, 10));
         node.getChildren().addAll(header, list);
     }
 

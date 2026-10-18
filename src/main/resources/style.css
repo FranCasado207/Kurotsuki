@@ -1,0 +1,50 @@
+.panel-host {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.12), 6, 0, 0, 1);
+}
+
+.panel-header {
+    -fx-background-color: linear-gradient(to right, #3a7bd5, #5b8fe0);
+    -fx-background-radius: 8 8 0 0;
+    -fx-padding: 6 10;
+}
+
+.panel-title {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.panel-close {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+    -fx-padding: 0 6;
+}
+
+.panel-close:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.25);
+    -fx-background-radius: 4;
+}
+
+.panel-body {
+    -fx-padding: 10;
+}
+
+.resize-handle-vertical,
+.resize-handle-horizontal {
+    -fx-background-color: transparent;
+}
+
+.resize-handle-vertical:hover,
+.resize-handle-horizontal:hover {
+    -fx-background-color: #3a7bd5;
+    -fx-background-radius: 3;
+}
+
+.drop-highlight {
+    -fx-background-color: rgba(58, 123, 213, 0.30);
+    -fx-background-radius: 8;
+    -fx-border-color: #3a7bd5;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+}

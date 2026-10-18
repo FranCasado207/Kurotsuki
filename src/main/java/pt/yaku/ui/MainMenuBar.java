@@ -1,8 +1,8 @@
 package pt.yaku.ui;
 
+import java.util.List;
+
 import javafx.application.Platform;
-import javafx.beans.property.BooleanProperty;
-import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
@@ -19,7 +19,7 @@ public final class MainMenuBar {
     }
 
     public static MenuBar create(Stage owner, ApplicationContext context, Runnable onSettingsClosed,
-                                 BooleanProperty foldersOpen, BooleanProperty favoritesOpen) {
+                                 List<MenuItem> windowItems) {
         MenuItem exit = new MenuItem(Messages.get("menu.exit"));
         exit.setAccelerator(new KeyCodeCombination(KeyCode.Q, KeyCombination.CONTROL_DOWN));
         exit.setOnAction(event -> Platform.exit());
@@ -36,14 +36,8 @@ public final class MainMenuBar {
         Menu tools = new Menu(Messages.get("menu.tools"));
         tools.getItems().add(settings);
 
-        CheckMenuItem folders = new CheckMenuItem(Messages.get("menu.folders"));
-        folders.selectedProperty().bindBidirectional(foldersOpen);
-
-        CheckMenuItem favorites = new CheckMenuItem(Messages.get("favorites.tab"));
-        favorites.selectedProperty().bindBidirectional(favoritesOpen);
-
         Menu window = new Menu(Messages.get("menu.window"));
-        window.getItems().addAll(folders, favorites);
+        window.getItems().addAll(windowItems);
 
         return new MenuBar(file, tools, window);
     }
