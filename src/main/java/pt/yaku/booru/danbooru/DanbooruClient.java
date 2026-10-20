@@ -23,7 +23,6 @@ public class DanbooruClient implements BooruClient {
 
     @Override
     public List<Post> searchPosts(String tags, int page, int limit) {
-        // Danbooru numera as páginas a partir de 1; a UI usa 0, como o Gelbooru
         return api.listPosts(USER_AGENT, login, apiKey, tags, page + 1, limit)
                 .stream()
                 .map(post -> post.toPost(baseUrl))

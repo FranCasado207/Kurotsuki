@@ -71,7 +71,6 @@ public class ImageGrid {
         node.getChildren().addAll(status, scroll);
     }
 
-
     public void setOnNearBottom(Runnable onNearBottom) {
         this.onNearBottom = onNearBottom;
     }

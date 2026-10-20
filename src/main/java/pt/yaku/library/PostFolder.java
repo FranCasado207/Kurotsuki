@@ -17,8 +17,6 @@ public class PostFolder {
         this.posts = FXCollections.observableArrayList(posts);
     }
 
-
-
     public boolean contains(String key) {
         return posts.stream().anyMatch(post -> post.key().equals(key));
     }

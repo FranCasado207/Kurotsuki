@@ -16,9 +16,7 @@ import pt.yaku.download.DownloadItem.Status;
 import pt.yaku.ui.ImageLoader;
 import pt.yaku.i18n.Messages;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
 public class DownloadQueue {
 
     private static final int PARALLEL_DOWNLOADS = 2;
@@ -33,7 +31,10 @@ public class DownloadQueue {
         return thread;
     });
 
-
+    public DownloadQueue(Supplier<String> downloadFolder, Consumer<String> onError) {
+        this.downloadFolder = downloadFolder;
+        this.onError = onError;
+    }
 
     public boolean contains(String key) {
         return items.stream().anyMatch(item -> item.getPost().key().equals(key));

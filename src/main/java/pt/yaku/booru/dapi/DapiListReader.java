@@ -57,7 +57,6 @@ public class DapiListReader<T> implements MessageBodyReader<List<T>> {
             return result;
         }
         JsonElement root = JsonParser.parseString(body);
-        // Safebooru devolve um array no topo; o Gelbooru devolve um objeto com a lista dentro de rootKey
         JsonArray items = root.isJsonArray() ? root.getAsJsonArray() : root.getAsJsonObject().getAsJsonArray(rootKey);
         if (items != null) {
             for (JsonElement element : items) {

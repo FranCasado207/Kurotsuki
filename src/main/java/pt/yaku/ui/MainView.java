@@ -28,7 +28,6 @@ import pt.yaku.library.Library;
 import pt.yaku.library.PostFolder;
 import pt.yaku.user.config.BooruConfiguration;
 import pt.yaku.client.RestClientConfiguration;
-import pt.yaku.user.config.BooruConfiguration;
 
 public class MainView {
 
@@ -149,7 +148,7 @@ public class MainView {
             showError(Messages.get("main.selectBooru"));
             return;
         }
-        if (!RestClientConfiguration.hasClient(booru.getBooruType())) {
+        if (!RestClientConfiguration.hasClient(booru)) {
             showError(Messages.get("main.noClient"));
             return;
         }

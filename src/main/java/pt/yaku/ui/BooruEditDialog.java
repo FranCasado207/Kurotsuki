@@ -12,94 +12,156 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Window;
-import pt.yaku.user.config.BooruConfiguration;
-import pt.yaku.user.config.BooruType;
-import pt.yaku.user.config.preconfigured.DanbooruConfiguration;
-import pt.yaku.user.config.preconfigured.GelbooruConfiguration;
+import javafx.util.StringConverter;
+import pt.yaku.booru.BooruEngine;
+import pt.yaku.booru.BooruFlavor;
+import pt.yaku.booru.BooruTemplate;
 import pt.yaku.i18n.Messages;
+import pt.yaku.user.config.BooruConfiguration;
 
 public class BooruEditDialog extends Dialog<BooruConfiguration> {
 
-    private final ComboBox<BooruType> typeBox = new ComboBox<>();
+    private final ComboBox<BooruTemplate> templateBox = new ComboBox<>();
+    private final ComboBox<BooruEngine> engineBox = new ComboBox<>();
+    private final ComboBox<BooruFlavor> flavorBox = new ComboBox<>();
     private final TextField baseUrlField = new TextField();
     private final TextField apiKeyField = new TextField();
+    private final TextField userIdField = new TextField();
+    private final Label engineLabel = new Label(Messages.get("booruEdit.engine"));
+    private final Label flavorLabel = new Label(Messages.get("booruEdit.flavor"));
     private final Label apiKeyLabel = new Label(Messages.get("booruEdit.apiKey"));
     private final Label userIdLabel = new Label(Messages.get("booruEdit.userId"));
-    private final TextField userIdField = new TextField();
 
     public BooruEditDialog(Window owner, BooruConfiguration existing) {
         initOwner(owner);
         setTitle(existing == null ? Messages.get("booruEdit.titleNew") : Messages.get("booruEdit.titleEdit"));
 
-        typeBox.getItems().setAll(BooruType.values());
-        typeBox.setValue(existing != null ? existing.getBooruType() : BooruType.GENERIC);
-        typeBox.valueProperty().addListener((obs, oldType, newType) -> onTypeChanged(newType));
+        templateBox.getItems().add(null);
+        templateBox.getItems().addAll(BooruTemplate.values());
+        templateBox.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(BooruTemplate template) {
+                return template == null ? Messages.get("booruEdit.custom") : template.getLabel();
+            }
+
+            @Override
+            public BooruTemplate fromString(String text) {
+                return null;
+            }
+        });
+        engineBox.getItems().setAll(BooruEngine.values());
+        engineBox.setConverter(labelConverter(BooruEngine::getLabel));
+        flavorBox.getItems().setAll(BooruFlavor.values());
+        flavorBox.setConverter(labelConverter(BooruFlavor::getLabel));
 
         if (existing != null) {
+            templateBox.setValue(existing.getTemplate());
+            engineBox.setValue(existing.getEngine());
+            flavorBox.setValue(existing.getFlavor());
             baseUrlField.setText(Objects.toString(existing.getCustomBaseUrl(), ""));
             apiKeyField.setText(Objects.toString(existing.getApiKey(), ""));
-            if (existing instanceof DanbooruConfiguration danbooru) {
-                userIdField.setText(Objects.toString(danbooru.getLogin(), ""));
-            } else if (existing instanceof GelbooruConfiguration gelbooru) {
-                userIdField.setText(Objects.toString(gelbooru.getUserId(), ""));
-            }
+            userIdField.setText(Objects.toString(existing.getUserId(), ""));
+        } else {
+            templateBox.setValue(BooruTemplate.GELBOORU);
         }
-        onTypeChanged(typeBox.getValue());
+        templateBox.valueProperty().addListener((obs, oldValue, newValue) -> onChanged());
+        engineBox.valueProperty().addListener((obs, oldValue, newValue) -> onChanged());
 
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
         grid.setPadding(new Insets(15));
-        grid.addRow(0, new Label(Messages.get("booruEdit.type")), typeBox);
-        grid.addRow(1, new Label(Messages.get("booruEdit.baseUrl")), baseUrlField);
-        grid.addRow(2, apiKeyLabel, apiKeyField);
-        grid.addRow(3, userIdLabel, userIdField);
+        grid.addRow(0, new Label(Messages.get("booruEdit.template")), templateBox);
+        grid.addRow(1, engineLabel, engineBox);
+        grid.addRow(2, flavorLabel, flavorBox);
+        grid.addRow(3, new Label(Messages.get("booruEdit.baseUrl")), baseUrlField);
+        grid.addRow(4, apiKeyLabel, apiKeyField);
+        grid.addRow(5, userIdLabel, userIdField);
 
         getDialogPane().setContent(grid);
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
         Node okButton = getDialogPane().lookupButton(ButtonType.OK);
         okButton.disableProperty().bind(Bindings.createBooleanBinding(
-                () -> typeBox.getValue() == BooruType.GENERIC && baseUrlField.getText().isBlank(),
-                typeBox.valueProperty(), baseUrlField.textProperty()));
+                () -> templateBox.getValue() == null
+                        && (engineBox.getValue() == null || baseUrlField.getText().isBlank()
+                            || (engineBox.getValue() == BooruEngine.MOEBOORU_SHIMMIE && flavorBox.getValue() == null)),
+                templateBox.valueProperty(), engineBox.valueProperty(), flavorBox.valueProperty(),
+                baseUrlField.textProperty()));
 
         setResultConverter(button -> button == ButtonType.OK ? buildConfiguration() : null);
+        onChanged();
     }
 
-    private void onTypeChanged(BooruType type) {
-        boolean hasUserId = type == BooruType.GELBOORU || type == BooruType.DANBOORU;
-        userIdLabel.setText(Messages.get(type == BooruType.DANBOORU ? "booruEdit.login" : "booruEdit.userId"));
-        userIdLabel.setVisible(hasUserId);
-        userIdLabel.setManaged(hasUserId);
-        userIdField.setVisible(hasUserId);
-        userIdField.setManaged(hasUserId);
-        boolean usesApiKey = type != BooruType.SAFEBOORU;
-        apiKeyLabel.setVisible(usesApiKey);
-        apiKeyLabel.setManaged(usesApiKey);
-        apiKeyField.setVisible(usesApiKey);
-        apiKeyField.setManaged(usesApiKey);
+    private static <T> StringConverter<T> labelConverter(java.util.function.Function<T, String> label) {
+        return new StringConverter<>() {
+            @Override
+            public String toString(T value) {
+                return value == null ? "" : label.apply(value);
+            }
 
-        String defaultUrl = type.getDefaultBaseUrl();
+            @Override
+            public T fromString(String text) {
+                return null;
+            }
+        };
+    }
+
+    private BooruEngine effectiveEngine() {
+        BooruTemplate template = templateBox.getValue();
+        return template != null ? template.getEngine() : engineBox.getValue();
+    }
+
+    private boolean usesCredentials() {
+        BooruTemplate template = templateBox.getValue();
+        if (template != null) {
+            return template.isUsesCredentials();
+        }
+        return engineBox.getValue() != null && engineBox.getValue().isUsesCredentials();
+    }
+
+    private void onChanged() {
+        boolean custom = templateBox.getValue() == null;
+        BooruEngine engine = effectiveEngine();
+        setRowVisible(engineLabel, engineBox, custom);
+        setRowVisible(flavorLabel, flavorBox, custom && engine == BooruEngine.MOEBOORU_SHIMMIE);
+
+        boolean credentials = usesCredentials();
+        setRowVisible(apiKeyLabel, apiKeyField, credentials);
+        setRowVisible(userIdLabel, userIdField, credentials);
+        apiKeyLabel.setText(Messages.get(engine == BooruEngine.SZURUBOORU ? "booruEdit.token" : "booruEdit.apiKey"));
+        userIdLabel.setText(Messages.get(switch (engine == null ? BooruEngine.GELBOORU_FAMILY : engine) {
+            case DANBOORU_SOFTWARE, E621 -> "booruEdit.login";
+            case SZURUBOORU -> "booruEdit.username";
+            default -> "booruEdit.userId";
+        }));
+
+        BooruTemplate template = templateBox.getValue();
+        String defaultUrl = template != null ? template.getDefaultBaseUrl() : null;
         baseUrlField.setPromptText(defaultUrl != null ? defaultUrl : Messages.get("booruEdit.urlRequired"));
     }
 
+    private static void setRowVisible(Label label, Node field, boolean visible) {
+        label.setVisible(visible);
+        label.setManaged(visible);
+        field.setVisible(visible);
+        field.setManaged(visible);
+    }
+
     private BooruConfiguration buildConfiguration() {
-        BooruType type = typeBox.getValue();
-        BooruConfiguration booru;
-        if (type == BooruType.GELBOORU) {
-            GelbooruConfiguration gelbooru = new GelbooruConfiguration();
-            gelbooru.setUserId(blankToNull(userIdField.getText()));
-            booru = gelbooru;
-        } else if (type == BooruType.DANBOORU) {
-            DanbooruConfiguration danbooru = new DanbooruConfiguration();
-            danbooru.setLogin(blankToNull(userIdField.getText()));
-            booru = danbooru;
-        } else {
-            booru = new BooruConfiguration();
-            booru.setBooruType(type);
+        BooruConfiguration booru = new BooruConfiguration();
+        BooruTemplate template = templateBox.getValue();
+        booru.setTemplate(template);
+        if (template == null) {
+            booru.setEngine(engineBox.getValue());
+            if (engineBox.getValue() == BooruEngine.MOEBOORU_SHIMMIE) {
+                booru.setFlavor(flavorBox.getValue());
+            }
         }
         booru.setCustomBaseUrl(blankToNull(baseUrlField.getText()));
-        booru.setApiKey(blankToNull(apiKeyField.getText()));
+        boolean credentials = usesCredentials();
+        booru.setApiKey(credentials ? blankToNull(apiKeyField.getText()) : null);
+        booru.setUserId(credentials ? blankToNull(userIdField.getText()) : null);
         return booru;
     }
 

@@ -5,22 +5,26 @@ import java.util.List;
 import org.apache.cxf.jaxrs.client.JAXRSClientFactory;
 
 import pt.yaku.booru.BooruClient;
+import pt.yaku.booru.BooruEngine;
+import pt.yaku.booru.BooruFlavor;
 import pt.yaku.booru.danbooru.DanbooruApi;
 import pt.yaku.booru.danbooru.DanbooruClient;
 import pt.yaku.booru.danbooru.DanbooruPost;
 import pt.yaku.booru.danbooru.DanbooruTag;
 import pt.yaku.booru.dapi.ApiPost;
 import pt.yaku.booru.dapi.DapiListReader;
-import pt.yaku.booru.dapi.DapiTag;
-import pt.yaku.booru.gelbooru.GelbooruApi;
-import pt.yaku.booru.gelbooru.GelbooruClient;
-import pt.yaku.booru.safebooru.SafebooruApi;
-import pt.yaku.booru.safebooru.SafebooruClient;
+import pt.yaku.booru.gelbooru.GelbooruFamilyApi;
+import pt.yaku.booru.gelbooru.GelbooruFamilyClient;
+import pt.yaku.booru.e621.E621Api;
+import pt.yaku.booru.e621.E621Client;
+import pt.yaku.booru.moebooru.MoebooruApi;
+import pt.yaku.booru.moebooru.MoebooruClient;
+import pt.yaku.booru.shimmie.ShimmieApi;
+import pt.yaku.booru.shimmie.ShimmieClient;
+import pt.yaku.booru.szurubooru.SzurubooruApi;
+import pt.yaku.booru.szurubooru.SzurubooruClient;
 import pt.yaku.context.ApplicationContext;
 import pt.yaku.user.config.BooruConfiguration;
-import pt.yaku.user.config.BooruType;
-import pt.yaku.user.config.preconfigured.DanbooruConfiguration;
-import pt.yaku.user.config.preconfigured.GelbooruConfiguration;
 
 public class RestClientConfiguration {
 
@@ -35,28 +39,43 @@ public class RestClientConfiguration {
     }
 
     public BooruClient clientFor(BooruConfiguration booru) {
+        BooruEngine engine = booru.getEngine();
+        if (engine == null) {
+            throw new IllegalStateException("No engine selected for this booru.");
+        }
         String baseUrl = booru.getBaseUrl();
-        return switch (booru.getBooruType()) {
-            case GELBOORU -> {
-                String userId = booru instanceof GelbooruConfiguration gelbooru ? gelbooru.getUserId() : null;
-                GelbooruApi api = create(GelbooruApi.class, baseUrl, List.of(
-                        new DapiListReader<>("post", ApiPost.class),
-                        new DapiListReader<>("tag", DapiTag.class)));
-                yield new GelbooruClient(api, baseUrl, booru.getApiKey(), userId);
-            }
-            case SAFEBOORU -> {
-                SafebooruApi api = create(SafebooruApi.class, baseUrl, List.of(
+        return switch (engine) {
+            case GELBOORU_FAMILY -> {
+                GelbooruFamilyApi api = create(GelbooruFamilyApi.class, baseUrl, List.of(
                         new DapiListReader<>("post", ApiPost.class)));
-                yield new SafebooruClient(api, baseUrl);
+                yield new GelbooruFamilyClient(api, baseUrl, booru.getApiKey(), booru.getUserId());
             }
-            case DANBOORU -> {
-                String login = booru instanceof DanbooruConfiguration danbooru ? danbooru.getLogin() : null;
+            case DANBOORU_SOFTWARE -> {
                 DanbooruApi api = create(DanbooruApi.class, baseUrl, List.of(
                         new DapiListReader<>("", DanbooruPost.class),
                         new DapiListReader<>("", DanbooruTag.class)));
-                yield new DanbooruClient(api, baseUrl, login, booru.getApiKey());
+                yield new DanbooruClient(api, baseUrl, booru.getUserId(), booru.getApiKey());
             }
-            default -> throw new IllegalStateException("No client for booru type " + booru.getBooruType());
+            case MOEBOORU_SHIMMIE -> {
+                BooruFlavor flavor = booru.getFlavor();
+                if (flavor == null) {
+                    throw new IllegalStateException("Choose a flavor (Moebooru or Shimmie) for this booru.");
+                }
+                if (flavor == BooruFlavor.SHIMMIE) {
+                    ShimmieApi api = create(ShimmieApi.class, baseUrl, List.of());
+                    yield new ShimmieClient(api, baseUrl);
+                }
+                MoebooruApi api = create(MoebooruApi.class, baseUrl, List.of());
+                yield new MoebooruClient(api, baseUrl);
+            }
+            case E621 -> {
+                E621Api api = create(E621Api.class, baseUrl, List.of());
+                yield new E621Client(api, baseUrl, booru.getUserId(), booru.getApiKey());
+            }
+            case SZURUBOORU -> {
+                SzurubooruApi api = create(SzurubooruApi.class, baseUrl, List.of());
+                yield new SzurubooruClient(api, baseUrl, booru.getUserId(), booru.getApiKey());
+            }
         };
     }
 
@@ -68,7 +87,7 @@ public class RestClientConfiguration {
         return clientFor(selected);
     }
 
-    public static boolean hasClient(BooruType type) {
-        return type == BooruType.GELBOORU || type == BooruType.SAFEBOORU || type == BooruType.DANBOORU;
+    public static boolean hasClient(BooruConfiguration booru) {
+        return booru.getEngine() != null && booru.getEngine().isImplemented();
     }
 }

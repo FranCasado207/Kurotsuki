@@ -3,7 +3,6 @@ package pt.yaku.cache;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -151,9 +150,4 @@ public final class CacheManager {
         }
     }
 
-    private static String extensionOf(String url) {
-        String path = URI.create(url).getPath();
-        int dot = path.lastIndexOf('.');
-        return dot >= 0 ? path.substring(dot + 1).toLowerCase() : "bin";
-    }
 }

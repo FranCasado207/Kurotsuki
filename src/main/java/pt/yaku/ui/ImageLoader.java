@@ -18,7 +18,7 @@ import java.util.concurrent.Executors;
 
 import javafx.scene.image.Image;
 import pt.yaku.cache.CacheManager;
-import pt.yaku.user.config.BooruType;
+import pt.yaku.booru.BooruTemplate;
 
 public final class ImageLoader {
 
@@ -47,7 +47,7 @@ public final class ImageLoader {
     public static Path downloadBlocking(String url, Path target, DoubleConsumer progress)
             throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder(URI.create(url))
-                .header("Referer", BooruType.refererFor(url))
+                .header("Referer", BooruTemplate.refererFor(url))
                 .header("User-Agent", USER_AGENT)
                 .GET()
                 .build();
@@ -80,7 +80,7 @@ public final class ImageLoader {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 HttpRequest request = HttpRequest.newBuilder(URI.create(url))
-                        .header("Referer", BooruType.refererFor(url))
+                        .header("Referer", BooruTemplate.refererFor(url))
                         .header("User-Agent", USER_AGENT)
                         .GET()
                         .build();

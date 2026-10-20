@@ -1,7 +1,6 @@
 package pt.yaku.ui;
 
 import javafx.beans.binding.Bindings;
-import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
@@ -49,10 +48,8 @@ public class DownloadBar {
         node.getChildren().addAll(header, list);
     }
 
-
     private static class DownloadCell extends ListCell<DownloadItem> {
 
-        private final DownloadQueue queue;
         private final Label name = new Label();
         private final ProgressBar progress = new ProgressBar(0);
         private final Label state = new Label();
@@ -61,7 +58,6 @@ public class DownloadBar {
         private DownloadItem bound;
 
         DownloadCell(DownloadQueue queue) {
-            this.queue = queue;
             name.setMinWidth(0);
             name.setPrefWidth(260);
             progress.setPrefWidth(200);

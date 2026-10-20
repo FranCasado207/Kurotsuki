@@ -17,7 +17,6 @@ import pt.yaku.favorites.Favorites;
 import pt.yaku.i18n.Messages;
 import pt.yaku.library.Library;
 import pt.yaku.user.config.BooruConfiguration;
-import pt.yaku.user.config.BooruType;
 import lombok.Getter;
 
 public class Sidebar {
@@ -41,7 +40,6 @@ public class Sidebar {
     public Sidebar(ApplicationContext context, Library library, SearchHandler handler) {
         this.context = context;
         Favorites favorites = library.favorites();
-
 
         booruList.setCellFactory(list -> new ListCell<>() {
             @Override
@@ -109,21 +107,19 @@ public class Sidebar {
         favoriteTagsNode.getChildren().addAll(favTagsTitle, tagList);
     }
 
-
-
     public void reload() {
         booruList.getItems().setAll(context.getUserConfig().getBooruConfigurations());
     }
 
     private List<String> suggestTags(String prefix) throws Exception {
         BooruConfiguration booru = currentBooru;
-        if (booru == null || booru.getBooruType() == BooruType.GENERIC) {
+        if (booru == null || booru.getEngine() == null) {
             return List.of();
         }
         return context.getRestConfig().clientFor(booru).suggestTags(prefix, SUGGESTION_LIMIT);
     }
 
     private static String describe(BooruConfiguration booru) {
-        return booru.getBooruType().name() + " - " + booru.getBaseUrl();
+        return booru.getKindLabel() + " - " + booru.getBaseUrl();
     }
 }

@@ -6,7 +6,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.control.Tab;
 import pt.yaku.booru.Post;
@@ -41,7 +40,7 @@ public class SearchTab extends Tab {
         imageGrid.setOnPostClicked(onPostClicked);
         imageGrid.setOnNearBottom(this::loadNextPage);
 
-        setText(this.tags != null ? this.tags : booru.getBooruType().name());
+        setText(this.tags != null ? this.tags : booru.getKindLabel());
         setContent(imageGrid.getNode());
         setOnClosed(event -> closed = true);
 

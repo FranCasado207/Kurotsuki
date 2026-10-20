@@ -31,8 +31,6 @@ public class Favorites {
                 Objects.requireNonNullElse(context.getUserConfig().getFavoritePosts(), List.of()));
     }
 
-
-
     public boolean isTagFavorite(String tag) {
         return tags.contains(tag);
     }

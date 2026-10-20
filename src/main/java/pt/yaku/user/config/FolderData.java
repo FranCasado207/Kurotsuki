@@ -1,6 +1,5 @@
 package pt.yaku.user.config;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -15,6 +14,6 @@ import pt.yaku.booru.Post;
 @AllArgsConstructor
 public class FolderData {
     String name;
-    List<Post> posts = new ArrayList<>();
+    List<Post> posts;
 
 }

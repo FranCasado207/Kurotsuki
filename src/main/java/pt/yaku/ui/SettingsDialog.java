@@ -48,14 +48,15 @@ public class SettingsDialog extends Dialog<Void> {
 
         TableColumn<BooruConfiguration, String> typeColumn = new TableColumn<>(Messages.get("common.type"));
         typeColumn.setCellValueFactory(cell ->
-                new SimpleStringProperty(cell.getValue().getBooruType().name()));
+                new SimpleStringProperty(cell.getValue().getKindLabel()));
 
         TableColumn<BooruConfiguration, String> urlColumn = new TableColumn<>(Messages.get("common.baseUrl"));
         urlColumn.setCellValueFactory(cell ->
                 new SimpleStringProperty(Objects.toString(cell.getValue().getBaseUrl(), "")));
         urlColumn.setPrefWidth(320);
 
-        table.getColumns().addAll(typeColumn, urlColumn);
+        table.getColumns().add(typeColumn);
+        table.getColumns().add(urlColumn);
         table.setItems(items);
         table.setPlaceholder(new Label(Messages.get("settings.noBooru")));
         table.setPrefHeight(250);

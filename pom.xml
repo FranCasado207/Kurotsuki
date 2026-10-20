@@ -54,7 +54,6 @@
     </dependency>
   </dependencies>
 
-
   <build>
     <plugins>
       <plugin>
@@ -78,13 +77,11 @@
         <configuration>
           <mainClass>pt.yaku.App</mainClass>
           <options>
-            <!-- o plugin só resolve javafx.base e javafx.controls; o javafx.media (vídeo no PostViewer) tem de ser adicionado -->
             <option>--add-modules</option>
             <option>javafx.media</option>
           </options>
         </configuration>
         <executions>
-          <!-- mvn javafx:run@debug : arranca a app à espera de um debugger na porta 5005 -->
           <execution>
             <id>debug</id>
             <configuration>

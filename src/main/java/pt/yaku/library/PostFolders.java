@@ -30,7 +30,6 @@ public class PostFolders {
         }
     }
 
-
     public PostFolder create(String name) {
         String trimmed = name.trim();
         for (PostFolder folder : folders) {
