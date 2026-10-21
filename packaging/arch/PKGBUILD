@@ -1,0 +1,45 @@
+pkgname=kurotsuki
+pkgver=0.5
+pkgrel=1
+pkgdesc="Desktop booru browser (JavaFX) for Gelbooru, Safebooru, Danbooru, Moebooru, Shimmie, e621 and Szurubooru"
+arch=('x86_64')
+url="https://github.com/FranCasado207/Kurotsuki"
+license=('custom')
+depends=('gtk3' 'libxtst' 'gstreamer' 'gst-plugins-base' 'gst-plugins-good' 'gst-libav')
+makedepends=('jdk25-openjdk' 'maven')
+options=('!strip' '!debug')
+source=("kurotsuki::git+https://github.com/FranCasado207/Kurotsuki.git#branch=main")
+sha256sums=('SKIP')
+
+build() {
+    cd "$srcdir/$pkgname"
+    export JAVA_HOME=/usr/lib/jvm/java-25-openjdk
+    export PATH="$JAVA_HOME/bin:$PATH"
+    ./scripts/build-linux.sh
+}
+
+package() {
+    cd "$srcdir/$pkgname"
+
+    install -dm755 "$pkgdir/usr/lib/$pkgname"
+    cp -a target/dist/kurotsuki/. "$pkgdir/usr/lib/$pkgname/"
+
+    install -dm755 "$pkgdir/usr/bin"
+    printf '%s\n' '#!/bin/sh' 'exec /usr/lib/kurotsuki/kurotsuki "$@"' > "$pkgdir/usr/bin/$pkgname"
+    chmod 755 "$pkgdir/usr/bin/$pkgname"
+
+    install -Dm644 src/main/resources/icons/kurotsuki-256.png "$pkgdir/usr/share/icons/hicolor/256x256/apps/$pkgname.png"
+    install -Dm644 src/main/resources/icons/kurotsuki.svg "$pkgdir/usr/share/icons/hicolor/scalable/apps/$pkgname.svg"
+
+    install -dm755 "$pkgdir/usr/share/applications"
+    cat > "$pkgdir/usr/share/applications/$pkgname.desktop" <<DESKTOP
+[Desktop Entry]
+Type=Application
+Name=Kurotsuki
+Comment=$pkgdesc
+Exec=$pkgname
+Terminal=false
+Icon=$pkgname
+Categories=Graphics;
+DESKTOP
+}

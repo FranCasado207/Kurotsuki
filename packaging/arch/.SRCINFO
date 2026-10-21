@@ -1,0 +1,21 @@
+pkgbase = kurotsuki
+	pkgdesc = Desktop booru browser (JavaFX) for Gelbooru, Safebooru, Danbooru, Moebooru, Shimmie, e621 and Szurubooru
+	pkgver = 0.5
+	pkgrel = 1
+	url = https://github.com/FranCasado207/Kurotsuki
+	arch = x86_64
+	license = custom
+	makedepends = jdk25-openjdk
+	makedepends = maven
+	depends = gtk3
+	depends = libxtst
+	depends = gstreamer
+	depends = gst-plugins-base
+	depends = gst-plugins-good
+	depends = gst-libav
+	options = !strip
+	options = !debug
+	source = kurotsuki::git+https://github.com/FranCasado207/Kurotsuki.git#branch=main
+	sha256sums = SKIP
+
+pkgname = kurotsuki

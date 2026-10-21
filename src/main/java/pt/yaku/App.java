@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import pt.yaku.cache.CacheManager;
 import pt.yaku.context.ApplicationContext;
@@ -27,6 +28,7 @@ public class App extends Application {
         Scene scene = new Scene(view.getRoot(), 1100, 700);
         scene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
 
+        stage.getIcons().add(new Image(getClass().getResourceAsStream("/icons/kurotsuki-256.png")));
         stage.setScene(scene);
         stage.show();
     }
