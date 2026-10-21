@@ -117,6 +117,9 @@ public final class CacheManager {
         if (startsWith(header, 0, 'B', 'M')) {
             return "bmp";
         }
+        if (startsWith(header, 0, 'P', 'K', 0x03, 0x04)) {
+            return "zip";
+        }
         if (startsWith(header, 0, 'R', 'I', 'F', 'F') && startsWith(header, 8, 'W', 'E', 'B', 'P')) {
             return "webp";
         }

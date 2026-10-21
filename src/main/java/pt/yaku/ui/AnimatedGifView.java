@@ -43,13 +43,13 @@ public class AnimatedGifView extends StackPane {
         double elapsed = 0;
         for (Frame frame : frames) {
             timeline.getKeyFrames().add(new KeyFrame(Duration.millis(elapsed),
-                    event -> view.setImage(new Image(new ByteArrayInputStream(frame.png())))));
+                    event -> view.setImage(new Image(new ByteArrayInputStream(frame.data())))));
             elapsed += frame.delayMs();
         }
         timeline.getKeyFrames().add(new KeyFrame(Duration.millis(elapsed)));
         timeline.setCycleCount(Animation.INDEFINITE);
 
-        view.setImage(new Image(new ByteArrayInputStream(frames.get(0).png())));
+        view.setImage(new Image(new ByteArrayInputStream(frames.get(0).data())));
         view.setPreserveRatio(true);
         view.fitWidthProperty().bind(widthProperty().subtract(20));
         view.fitHeightProperty().bind(heightProperty().subtract(20));
@@ -62,7 +62,7 @@ public class AnimatedGifView extends StackPane {
         timeline.stop();
     }
 
-    public record Frame(byte[] png, double delayMs) {
+    public record Frame(byte[] data, double delayMs) {
     }
 
     public static List<Frame> decode(Path file) throws IOException {

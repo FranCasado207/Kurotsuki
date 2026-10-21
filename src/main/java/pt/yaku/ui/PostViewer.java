@@ -98,9 +98,12 @@ public class PostViewer extends Stage {
     }
 
     private static Prepared prepare(Path file, String extension) {
-        if ("gif".equals(extension)) {
+        if ("gif".equals(extension) || "zip".equals(extension)) {
             try {
-                return new Prepared(file, extension, AnimatedGifView.decode(file));
+                List<AnimatedGifView.Frame> frames = "zip".equals(extension)
+                        ? UgoiraDecoder.decode(file)
+                        : AnimatedGifView.decode(file);
+                return new Prepared(file, extension, frames);
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
@@ -117,7 +120,7 @@ public class PostViewer extends Stage {
             view.fitWidthProperty().bind(center.widthProperty().subtract(20));
             view.fitHeightProperty().bind(center.heightProperty().subtract(20));
             setMedia(view);
-        } else if ("gif".equals(extension)) {
+        } else if ("gif".equals(extension) || "zip".equals(extension)) {
             try {
                 setMedia(new AnimatedGifView(prepared.gifFrames()));
             } catch (RuntimeException e) {
