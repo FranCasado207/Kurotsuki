@@ -1,7 +1,10 @@
 package pt.yaku.booru.moebooru;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -10,6 +13,7 @@ import com.google.gson.JsonParser;
 import pt.yaku.booru.BooruClient;
 import pt.yaku.booru.BooruHttp;
 import pt.yaku.booru.Post;
+import pt.yaku.booru.TagCategory;
 
 public class MoebooruClient implements BooruClient {
 
@@ -39,6 +43,32 @@ public class MoebooruClient implements BooruClient {
             names.add(element.getAsJsonObject().get("name").getAsString());
         }
         return names;
+    }
+
+    @Override
+    public Map<String, TagCategory> tagCategories(Collection<String> names) {
+        Map<String, TagCategory> categories = new HashMap<>();
+        for (String name : names) {
+            String body = api.listTags(BooruHttp.USER_AGENT, name, "count", 100);
+            for (JsonElement element : array(body)) {
+                JsonObject tag = element.getAsJsonObject();
+                if (name.equals(stringOf(tag, "name"))) {
+                    categories.put(name, categoryOf(intOf(tag, "type")));
+                    break;
+                }
+            }
+        }
+        return categories;
+    }
+
+    private static TagCategory categoryOf(int type) {
+        return switch (type) {
+            case 0 -> TagCategory.GENERAL;
+            case 1 -> TagCategory.ARTIST;
+            case 3 -> TagCategory.COPYRIGHT;
+            case 4 -> TagCategory.CHARACTER;
+            default -> TagCategory.OTHER;
+        };
     }
 
     private Post toPost(JsonObject json) {

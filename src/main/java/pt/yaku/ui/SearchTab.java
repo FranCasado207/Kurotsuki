@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 import javafx.concurrent.Task;
 import javafx.scene.control.Tab;
@@ -15,7 +16,7 @@ import pt.yaku.user.config.TagBlacklist;
 import pt.yaku.user.config.BooruConfiguration;
 import pt.yaku.i18n.Messages;
 
-public class SearchTab extends Tab {
+public class SearchTab extends Tab implements GridTab {
 
     private static final int PAGE_SIZE = 100;
 
@@ -31,7 +32,7 @@ public class SearchTab extends Tab {
     private boolean closed;
 
     public SearchTab(ApplicationContext context, Library library, BooruConfiguration booru,
-                     String tags, Consumer<Post> onPostClicked) {
+                     String tags, BiConsumer<Post, List<Post>> onPostClicked) {
         this.context = context;
         this.booru = booru;
         this.tags = tags == null || tags.isBlank() ? null : tags.trim();
@@ -87,8 +88,12 @@ public class SearchTab extends Tab {
             } else {
                 imageGrid.appendPosts(visible);
             }
-            String summary = exhausted ? Messages.get("search.end") : Messages.get("search.showing");
-            imageGrid.setStatus(hidden > 0 ? Messages.get("search.hidden", summary, String.valueOf(hidden)) : summary);
+            imageGrid.setStatus(hidden > 0 ? Messages.get("search.hidden", String.valueOf(hidden)) : "");
+            if (page == 0 && visible.isEmpty()) {
+                imageGrid.showEmptyState(Messages.get("search.noResults"));
+            } else if (exhausted) {
+                imageGrid.showEndState(Messages.get("search.end"));
+            }
         });
         task.setOnFailed(event -> {
             if (id != searchId || closed) {
@@ -106,5 +111,10 @@ public class SearchTab extends Tab {
         Thread thread = new Thread(task, "booru-search");
         thread.setDaemon(true);
         thread.start();
+    }
+
+    @Override
+    public ImageGrid grid() {
+        return imageGrid;
     }
 }

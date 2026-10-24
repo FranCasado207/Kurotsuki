@@ -11,7 +11,8 @@ public enum BooruTemplate {
     DANBOORU("Danbooru", BooruEngine.DANBOORU_SOFTWARE, null, "https://danbooru.donmai.us", true),
     YANDERE("yande.re", BooruEngine.MOEBOORU_SHIMMIE, BooruFlavor.MOEBOORU, "https://yande.re", false),
     KONACHAN("Konachan", BooruEngine.MOEBOORU_SHIMMIE, BooruFlavor.MOEBOORU, "https://konachan.com", false),
-    E621("e621", BooruEngine.E621, null, "https://e621.net", true);
+    E621("e621", BooruEngine.E621, null, "https://e621.net", true),
+    HYDRUS("Hydrus Network", BooruEngine.HYDRUS, null, "http://127.0.0.1:45869", true);
 
     private final String label;
     private final BooruEngine engine;

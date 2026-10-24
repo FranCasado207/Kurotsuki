@@ -2,7 +2,10 @@ package pt.yaku.booru.gelbooru;
 
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -13,9 +16,11 @@ import org.xml.sax.InputSource;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import pt.yaku.booru.BooruClient;
 import pt.yaku.booru.Post;
+import pt.yaku.booru.TagCategory;
 
 public class GelbooruFamilyClient implements BooruClient {
 
@@ -74,5 +79,64 @@ public class GelbooruFamilyClient implements BooruClient {
             throw new IllegalStateException("Invalid tag response", e);
         }
         return names;
+    }
+
+    @Override
+    public Map<String, TagCategory> tagCategories(Collection<String> names) {
+        Map<String, TagCategory> categories = new HashMap<>();
+        for (String name : names) {
+            String body = api.listTags("dapi", "tag", "index", apiKey, userId, name, 10, null, null, 1);
+            Map<String, Integer> types = typesByName(body);
+            if (types.containsKey(name)) {
+                categories.put(name, categoryOf(types.get(name)));
+            }
+        }
+        return categories;
+    }
+
+    private static TagCategory categoryOf(int type) {
+        return switch (type) {
+            case 0 -> TagCategory.GENERAL;
+            case 1 -> TagCategory.ARTIST;
+            case 3 -> TagCategory.COPYRIGHT;
+            case 4 -> TagCategory.CHARACTER;
+            case 5 -> TagCategory.META;
+            default -> TagCategory.OTHER;
+        };
+    }
+
+    private static Map<String, Integer> typesByName(String body) {
+        Map<String, Integer> types = new HashMap<>();
+        if (body == null || body.isBlank()) {
+            return types;
+        }
+        if (body.trim().startsWith("<")) {
+            try {
+                Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+                        .parse(new InputSource(new StringReader(body)));
+                NodeList tags = document.getElementsByTagName("tag");
+                for (int i = 0; i < tags.getLength(); i++) {
+                    Element tag = (Element) tags.item(i);
+                    if (tag.hasAttribute("type")) {
+                        types.put(tag.getAttribute("name"), Integer.parseInt(tag.getAttribute("type")));
+                    }
+                }
+            } catch (Exception e) {
+                throw new IllegalStateException("Invalid tag response", e);
+            }
+            return types;
+        }
+        JsonElement root = JsonParser.parseString(body);
+        JsonArray tags = root.isJsonArray() ? root.getAsJsonArray()
+                : root.getAsJsonObject().has("tag") ? root.getAsJsonObject().getAsJsonArray("tag") : null;
+        if (tags != null) {
+            for (JsonElement tag : tags) {
+                JsonObject object = tag.getAsJsonObject();
+                if (object.has("type")) {
+                    types.put(object.get("name").getAsString(), object.get("type").getAsInt());
+                }
+            }
+        }
+        return types;
     }
 }

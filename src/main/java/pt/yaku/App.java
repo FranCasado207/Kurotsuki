@@ -6,6 +6,7 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
+import atlantafx.base.theme.PrimerDark;
 import pt.yaku.cache.CacheManager;
 import pt.yaku.context.ApplicationContext;
 import pt.yaku.i18n.Messages;
@@ -23,6 +24,7 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) {
+        Application.setUserAgentStylesheet(new PrimerDark().getUserAgentStylesheet());
         MainView view = new MainView(stage, context);
 
         Scene scene = new Scene(view.getRoot(), 1100, 700);

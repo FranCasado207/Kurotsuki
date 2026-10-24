@@ -68,6 +68,7 @@ public class Sidebar {
                 handler.search(booruList.getSelectionModel().getSelectedItem(), searchField.getText()));
 
         Label boorusTitle = new Label(Messages.get("sidebar.boorusTitle"));
+        boorusTitle.getStyleClass().add("section-title");
         searchNode.getChildren().addAll(boorusTitle,
                 booruList, searchField, searchButton);
 
@@ -104,7 +105,13 @@ public class Sidebar {
         VBox.setVgrow(tagList, Priority.ALWAYS);
 
         Label favTagsTitle = new Label(Messages.get("sidebar.favTags"));
+        favTagsTitle.getStyleClass().add("section-title");
         favoriteTagsNode.getChildren().addAll(favTagsTitle, tagList);
+    }
+
+    public void focusSearch() {
+        searchField.requestFocus();
+        searchField.selectAll();
     }
 
     public void reload() {

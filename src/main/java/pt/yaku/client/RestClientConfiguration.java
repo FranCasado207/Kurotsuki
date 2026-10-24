@@ -15,6 +15,8 @@ import pt.yaku.booru.dapi.ApiPost;
 import pt.yaku.booru.dapi.DapiListReader;
 import pt.yaku.booru.gelbooru.GelbooruFamilyApi;
 import pt.yaku.booru.gelbooru.GelbooruFamilyClient;
+import pt.yaku.booru.hydrus.HydrusApi;
+import pt.yaku.booru.hydrus.HydrusClient;
 import pt.yaku.booru.e621.E621Api;
 import pt.yaku.booru.e621.E621Client;
 import pt.yaku.booru.moebooru.MoebooruApi;
@@ -71,6 +73,10 @@ public class RestClientConfiguration {
             case E621 -> {
                 E621Api api = create(E621Api.class, baseUrl, List.of());
                 yield new E621Client(api, baseUrl, booru.getUserId(), booru.getApiKey());
+            }
+            case HYDRUS -> {
+                HydrusApi api = create(HydrusApi.class, baseUrl, List.of());
+                yield new HydrusClient(api, baseUrl, booru.getApiKey());
             }
             case SZURUBOORU -> {
                 SzurubooruApi api = create(SzurubooruApi.class, baseUrl, List.of());

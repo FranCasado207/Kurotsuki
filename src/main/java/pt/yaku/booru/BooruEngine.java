@@ -8,7 +8,8 @@ public enum BooruEngine {
     DANBOORU_SOFTWARE("Danbooru Software", true),
     MOEBOORU_SHIMMIE("Moebooru / Shimmie Family", true),
     SZURUBOORU("Szurubooru", true),
-    E621("e621 / e621ng", true);
+    E621("e621 / e621ng", true),
+    HYDRUS("Hydrus Network", true);
 
     private final String label;
     private final boolean usesCredentials;

@@ -11,6 +11,7 @@ import com.google.gson.JsonParser;
 import pt.yaku.booru.BooruClient;
 import pt.yaku.booru.BooruHttp;
 import pt.yaku.booru.Post;
+import pt.yaku.booru.TagCategory;
 
 public class E621Client implements BooruClient {
 
@@ -64,7 +65,15 @@ public class E621Client implements BooruClient {
         post.setScore(json.getAsJsonObject("score").get("total").getAsInt());
         post.setRating(BooruHttp.rating(json.get("rating").getAsString()));
         post.setSource(json.getAsJsonArray("sources").isEmpty() ? null : json.getAsJsonArray("sources").get(0).getAsString());
-        post.setTags(allTags(json.getAsJsonObject("tags")));
+        JsonObject categories = json.getAsJsonObject("tags");
+        post.setTags(allTags(categories));
+        for (Map.Entry<String, JsonElement> category : categories.entrySet()) {
+            StringBuilder names = new StringBuilder();
+            for (JsonElement tag : category.getValue().getAsJsonArray()) {
+                names.append(tag.getAsString()).append(' ');
+            }
+            post.addTagCategories(names.toString(), TagCategory.fromName(category.getKey()));
+        }
         post.setBooruBaseUrl(baseUrl);
         return post;
     }

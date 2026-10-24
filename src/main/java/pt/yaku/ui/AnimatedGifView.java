@@ -21,6 +21,7 @@ import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.scene.image.Image;
+import javafx.beans.binding.DoubleExpression;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
@@ -31,9 +32,20 @@ public class AnimatedGifView extends StackPane {
 
     private static final int MIN_DELAY_MS = 20;
     private static final int BATCH_SIZE = Runtime.getRuntime().availableProcessors();
+    private static final double MAX_DECODED_SIDE = 2048;
 
     private final ImageView view = new ImageView();
     private final Timeline timeline = new Timeline();
+
+    public void fitTo(DoubleExpression availableWidth, DoubleExpression availableHeight,
+                      double insetX, double insetY) {
+        view.fitWidthProperty().bind(availableWidth.subtract(insetX));
+        view.fitHeightProperty().bind(availableHeight.subtract(insetY));
+    }
+
+    private static Image decodeFrame(Frame frame) {
+        return new Image(new ByteArrayInputStream(frame.data()), MAX_DECODED_SIDE, MAX_DECODED_SIDE, true, true);
+    }
 
     public AnimatedGifView(List<Frame> frames) {
         if (frames.isEmpty()) {
@@ -43,16 +55,14 @@ public class AnimatedGifView extends StackPane {
         double elapsed = 0;
         for (Frame frame : frames) {
             timeline.getKeyFrames().add(new KeyFrame(Duration.millis(elapsed),
-                    event -> view.setImage(new Image(new ByteArrayInputStream(frame.data())))));
+                    event -> view.setImage(decodeFrame(frame))));
             elapsed += frame.delayMs();
         }
         timeline.getKeyFrames().add(new KeyFrame(Duration.millis(elapsed)));
         timeline.setCycleCount(Animation.INDEFINITE);
 
-        view.setImage(new Image(new ByteArrayInputStream(frames.get(0).data())));
+        view.setImage(decodeFrame(frames.get(0)));
         view.setPreserveRatio(true);
-        view.fitWidthProperty().bind(widthProperty().subtract(20));
-        view.fitHeightProperty().bind(heightProperty().subtract(20));
         getChildren().add(view);
 
         timeline.play();

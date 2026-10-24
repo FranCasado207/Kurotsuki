@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import pt.yaku.booru.Post;
+import pt.yaku.booru.TagCategory;
 
 @Getter
 @Setter
@@ -21,6 +22,11 @@ public class DanbooruPost {
     private String rating;
     private String source;
     private String tagString;
+    private String tagStringArtist;
+    private String tagStringCopyright;
+    private String tagStringCharacter;
+    private String tagStringGeneral;
+    private String tagStringMeta;
 
     public Post toPost(String booruBaseUrl) {
         Post post = new Post();
@@ -32,6 +38,11 @@ public class DanbooruPost {
         post.setRating(toGelbooruRating(rating));
         post.setSource(source);
         post.setTags(tagString);
+        post.addTagCategories(tagStringArtist, TagCategory.ARTIST);
+        post.addTagCategories(tagStringCopyright, TagCategory.COPYRIGHT);
+        post.addTagCategories(tagStringCharacter, TagCategory.CHARACTER);
+        post.addTagCategories(tagStringGeneral, TagCategory.GENERAL);
+        post.addTagCategories(tagStringMeta, TagCategory.META);
         post.setPreviewUrl(previewFileUrl);
         post.setFileUrl(fileUrl);
         post.setSampleUrl(largeFileUrl);

@@ -12,6 +12,7 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import pt.yaku.booru.Post;
+import pt.yaku.ui.UgoiraGif;
 import pt.yaku.download.DownloadItem.Status;
 import pt.yaku.ui.ImageLoader;
 import pt.yaku.i18n.Messages;
@@ -84,6 +85,10 @@ public class DownloadQueue {
                 Path target = directory.resolve(fileNameOf(item.getPost()));
                 ImageLoader.downloadBlocking(item.getPost().getFileUrl(), target,
                         progress -> Platform.runLater(() -> item.setProgress(progress)));
+                if (UgoiraGif.isUgoiraZip(target)) {
+                    UgoiraGif.convert(target, UgoiraGif.gifNameFor(target));
+                    Files.deleteIfExists(target);
+                }
                 Platform.runLater(() -> item.setStatus(Status.DONE));
             } catch (Exception e) {
                 Platform.runLater(() -> {

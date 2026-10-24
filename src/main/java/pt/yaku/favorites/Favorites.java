@@ -1,34 +1,33 @@
 package pt.yaku.favorites;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.sql.SQLException;
 import java.util.function.Consumer;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import pt.yaku.booru.Post;
-import pt.yaku.context.ApplicationContext;
 import pt.yaku.i18n.Messages;
+import pt.yaku.storage.LibraryStore;
 import lombok.Getter;
 
 public class Favorites {
 
-    private final ApplicationContext context;
+    private final LibraryStore store;
     private final Consumer<String> onError;
     @Getter
-    private final ObservableList<String> tags;
+    private final ObservableList<String> tags = FXCollections.observableArrayList();
     @Getter
-    private final ObservableList<Post> posts;
+    private final ObservableList<Post> posts = FXCollections.observableArrayList();
 
-    public Favorites(ApplicationContext context, Consumer<String> onError) {
-        this.context = context;
+    public Favorites(LibraryStore store, Consumer<String> onError) {
+        this.store = store;
         this.onError = onError;
-        tags = FXCollections.observableArrayList(
-                Objects.requireNonNullElse(context.getUserConfig().getFavoriteTags(), List.of()));
-        posts = FXCollections.observableArrayList(
-                Objects.requireNonNullElse(context.getUserConfig().getFavoritePosts(), List.of()));
+        try {
+            tags.setAll(store.favoriteTags());
+            posts.setAll(store.favoritePosts());
+        } catch (SQLException e) {
+            onError.accept(Messages.get("favorites.saveError", e.getMessage()));
+        }
     }
 
     public boolean isTagFavorite(String tag) {
@@ -36,10 +35,16 @@ public class Favorites {
     }
 
     public void toggleTag(String tag) {
-        if (!tags.remove(tag)) {
-            tags.add(tag);
+        try {
+            if (tags.remove(tag)) {
+                store.removeFavoriteTag(tag);
+            } else {
+                tags.add(tag);
+                store.addFavoriteTag(tag);
+            }
+        } catch (SQLException e) {
+            onError.accept(Messages.get("favorites.saveError", e.getMessage()));
         }
-        persist();
     }
 
     public boolean isPostFavorite(String key) {
@@ -47,18 +52,13 @@ public class Favorites {
     }
 
     public void togglePost(Post post) {
-        if (!posts.removeIf(favorite -> favorite.key().equals(post.key()))) {
+        boolean wasFavorite = posts.removeIf(favorite -> favorite.key().equals(post.key()));
+        if (!wasFavorite) {
             posts.add(post);
         }
-        persist();
-    }
-
-    private void persist() {
-        context.getUserConfig().setFavoriteTags(new ArrayList<>(tags));
-        context.getUserConfig().setFavoritePosts(new ArrayList<>(posts));
         try {
-            context.saveUserConfig();
-        } catch (IOException e) {
+            store.setFavoritePost(post, !wasFavorite);
+        } catch (SQLException e) {
             onError.accept(Messages.get("favorites.saveError", e.getMessage()));
         }
     }

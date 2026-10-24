@@ -34,6 +34,7 @@ public class BooruEditDialog extends Dialog<BooruConfiguration> {
 
     public BooruEditDialog(Window owner, BooruConfiguration existing) {
         initOwner(owner);
+        Styles.apply(getDialogPane());
         setTitle(existing == null ? Messages.get("booruEdit.titleNew") : Messages.get("booruEdit.titleEdit"));
 
         templateBox.getItems().add(null);

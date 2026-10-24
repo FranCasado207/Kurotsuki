@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
@@ -30,10 +31,9 @@ import pt.yaku.layout.PanelLayout;
 public class Workspace {
 
     private static final double DROP_ZONE = 80;
-    private static final double HANDLE_SIZE = 6;
     private static final double MIN_SIZE = 120;
     private static final double MAX_SIZE = 1200;
-    private static final double PANEL_GAP = 8;
+    private static final double CARD_GAP = 8;
 
     private final PanelLayout layout;
     private final Map<PanelId, Node> contents;
@@ -55,7 +55,8 @@ public class Workspace {
         this.layout = layout;
         this.contents = contents;
 
-        body.setCenter(center);
+        body.setPadding(new Insets(CARD_GAP));
+        body.setCenter(card(center));
         highlight.setMouseTransparent(true);
         highlight.setVisible(false);
         highlight.getStyleClass().add("drop-highlight");
@@ -127,7 +128,7 @@ public class Workspace {
             return null;
         }
         boolean vertical = dock == Dock.LEFT || dock == Dock.RIGHT;
-        Pane pane = vertical ? new VBox(PANEL_GAP) : new HBox(PANEL_GAP);
+        Pane pane = vertical ? new VBox() : new HBox();
         pane.getChildren().addAll(hosts);
         double size = layout.sizeOf(dock);
         if (vertical) {
@@ -148,11 +149,11 @@ public class Workspace {
         Region handle = new Region();
         handle.getStyleClass().add(vertical ? "resize-handle-vertical" : "resize-handle-horizontal");
         if (vertical) {
-            handle.setMinWidth(HANDLE_SIZE);
-            handle.setPrefWidth(HANDLE_SIZE);
+            handle.setMinWidth(CARD_GAP);
+            handle.setPrefWidth(CARD_GAP);
         } else {
-            handle.setMinHeight(HANDLE_SIZE);
-            handle.setPrefHeight(HANDLE_SIZE);
+            handle.setMinHeight(CARD_GAP);
+            handle.setPrefHeight(CARD_GAP);
         }
         handle.setOnMousePressed(event -> {
             resizeStart = vertical ? event.getSceneX() : event.getSceneY();
@@ -187,6 +188,7 @@ public class Workspace {
     private List<Node> hostsFor(Dock dock) {
         boolean vertical = dock == Dock.LEFT || dock == Dock.RIGHT;
         List<Node> hosts = new ArrayList<>();
+        Region lastHandle = null;
         for (PanelId id : PanelId.values()) {
             if (layout.dockOf(id) != dock) {
                 continue;
@@ -204,6 +206,14 @@ public class Workspace {
             VBox.setVgrow(wrapper, grow);
             HBox.setHgrow(wrapper, grow);
             hosts.add(wrapper);
+            lastHandle = handle;
+        }
+        if (lastHandle != null) {
+            if (vertical) {
+                VBox.setMargin(lastHandle, new Insets(0, 0, -CARD_GAP, 0));
+            } else {
+                HBox.setMargin(lastHandle, new Insets(0, -CARD_GAP, 0, 0));
+            }
         }
         return hosts;
     }
@@ -222,11 +232,11 @@ public class Workspace {
         Region handle = new Region();
         handle.getStyleClass().add(vertical ? "resize-handle-horizontal" : "resize-handle-vertical");
         if (vertical) {
-            handle.setMinHeight(HANDLE_SIZE);
-            handle.setPrefHeight(HANDLE_SIZE);
+            handle.setMinHeight(CARD_GAP);
+            handle.setPrefHeight(CARD_GAP);
         } else {
-            handle.setMinWidth(HANDLE_SIZE);
-            handle.setPrefWidth(HANDLE_SIZE);
+            handle.setMinWidth(CARD_GAP);
+            handle.setPrefWidth(CARD_GAP);
         }
         handle.setCursor(vertical ? Cursor.V_RESIZE : Cursor.H_RESIZE);
         handle.setOnMousePressed(event -> {
@@ -245,6 +255,12 @@ public class Workspace {
             event.consume();
         });
         return handle;
+    }
+
+    private static StackPane card(Node content) {
+        StackPane card = new StackPane(content);
+        card.getStyleClass().add("card");
+        return card;
     }
 
     private VBox host(PanelId id) {

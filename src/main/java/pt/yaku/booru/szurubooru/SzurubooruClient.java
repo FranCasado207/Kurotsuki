@@ -1,7 +1,10 @@
 package pt.yaku.booru.szurubooru;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -10,6 +13,7 @@ import com.google.gson.JsonParser;
 import pt.yaku.booru.BooruClient;
 import pt.yaku.booru.BooruHttp;
 import pt.yaku.booru.Post;
+import pt.yaku.booru.TagCategory;
 
 public class SzurubooruClient implements BooruClient {
 
@@ -46,6 +50,33 @@ public class SzurubooruClient implements BooruClient {
             }
         }
         return names;
+    }
+
+    @Override
+    public Map<String, TagCategory> tagCategories(Collection<String> names) {
+        Map<String, TagCategory> categories = new HashMap<>();
+        for (String name : names) {
+            String body = api.listTags(BooruHttp.USER_AGENT, authorization, 0, 5, "name:" + name);
+            for (JsonElement element : results(body)) {
+                JsonObject tag = element.getAsJsonObject();
+                if (tag.has("names") && tag.getAsJsonArray("names").toString().contains("\"" + name + "\"")) {
+                    categories.put(name, categoryOf(tag.has("category") ? tag.get("category").getAsString() : "default"));
+                    break;
+                }
+            }
+        }
+        return categories;
+    }
+
+    private static TagCategory categoryOf(String category) {
+        return switch (category) {
+            case "default" -> TagCategory.GENERAL;
+            case "artist" -> TagCategory.ARTIST;
+            case "copyright" -> TagCategory.COPYRIGHT;
+            case "character" -> TagCategory.CHARACTER;
+            case "meta" -> TagCategory.META;
+            default -> TagCategory.OTHER;
+        };
     }
 
     private JsonArray results(String body) {

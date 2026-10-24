@@ -95,7 +95,8 @@ public class MainView {
             }
         });
 
-        root.setTop(MainMenuBar.create(stage, context, sidebar::reload, buildWindowItems()));
+        root.setTop(MainMenuBar.create(stage, context, sidebar::reload, sidebar::focusSearch,
+                this::selectAllInCurrentTab, buildWindowItems()));
         root.setCenter(workspace.getNode());
         favoritesOpen.set(true);
         foldersOpen.set(true);
@@ -153,7 +154,7 @@ public class MainView {
             return;
         }
         context.setSelectedBooru(booru);
-        addTab(new SearchTab(context, library, booru, tags, this::openPost));
+        addFirstTab(new SearchTab(context, library, booru, tags, this::openPost));
     }
 
     private void openFolder(PostFolder folder) {
@@ -166,8 +167,20 @@ public class MainView {
         addTab(new FolderTab(library, folder, this::openPost));
     }
 
+    private void selectAllInCurrentTab() {
+        Tab selected = tabs.getSelectionModel().getSelectedItem();
+        if (selected instanceof GridTab gridTab) {
+            gridTab.grid().selectAll();
+        }
+    }
+
     private void addTab(Tab tab) {
         tabs.getTabs().add(tab);
+        tabs.getSelectionModel().select(tab);
+    }
+
+    private void addFirstTab(Tab tab) {
+        tabs.getTabs().add(0, tab);
         tabs.getSelectionModel().select(tab);
     }
 
@@ -177,10 +190,10 @@ public class MainView {
         stage.setTitle(selected == null ? title : title + " - " + selected.getText());
     }
 
-    private void openPost(Post post) {
+    private void openPost(Post post, List<Post> posts) {
         BooruConfiguration booru = booruFor(post);
-        new PostViewer(stage, context, library.favorites(), post,
-                booru == null ? null : tag -> openSearch(booru, tag));
+        new PostViewer(stage, context, library, post, posts,
+                booru == null ? null : tag -> openSearch(booru, tag), booru);
     }
 
     private BooruConfiguration booruFor(Post post) {
@@ -196,7 +209,7 @@ public class MainView {
     }
 
     private void showError(String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR, message);
+        Alert alert = Styles.alert(Alert.AlertType.ERROR, message);
         alert.initOwner(stage);
         alert.showAndWait();
     }

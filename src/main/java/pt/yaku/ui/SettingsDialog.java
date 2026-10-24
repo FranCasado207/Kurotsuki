@@ -16,6 +16,8 @@ import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TableView;
@@ -41,6 +43,7 @@ public class SettingsDialog extends Dialog<Void> {
     public SettingsDialog(Window owner, ApplicationContext context) {
         this.owner = owner;
         this.context = context;
+        Styles.apply(getDialogPane());
         initOwner(owner);
         setTitle(Messages.get("settings.title"));
 
@@ -140,17 +143,34 @@ public class SettingsDialog extends Dialog<Void> {
         languageBox.setOnAction(event -> {
             context.getUserConfig().setLanguage("Português".equals(languageBox.getValue()) ? "pt" : "en");
             persist();
-            Alert notice = new Alert(Alert.AlertType.INFORMATION, Messages.get("settings.restartNotice"));
+            Alert notice = Styles.alert(Alert.AlertType.INFORMATION, Messages.get("settings.restartNotice"));
             notice.initOwner(owner);
             notice.showAndWait();
         });
         HBox languageRow = new HBox(10, new Label(Messages.get("settings.language")), languageBox);
 
-        VBox content = new VBox(10, table, buttons, folderRow, blacklistBox, cacheBox, languageRow);
+        VBox boorusTab = new VBox(10, table, buttons);
+        VBox generalTab = new VBox(12, languageRow, folderRow);
+        TabPane tabs = new TabPane(
+                tab("settings.tabGeneral", generalTab),
+                tab("settings.tabBoorus", boorusTab),
+                tab("settings.tabBlacklist", blacklistBox),
+                tab("settings.tabCache", cacheBox));
+        tabs.setPrefWidth(760);
+        VBox content = new VBox(tabs);
         content.setPadding(new Insets(10));
 
+        getDialogPane().setPrefSize(800, 520);
         getDialogPane().setContent(content);
         getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+    }
+
+    private static Tab tab(String messageKey, javafx.scene.Node content) {
+        VBox body = new VBox(10, content);
+        body.setPadding(new Insets(12));
+        Tab tab = new Tab(Messages.get(messageKey), body);
+        tab.setClosable(false);
+        return tab;
     }
 
     private void addBooru() {
@@ -177,7 +197,7 @@ public class SettingsDialog extends Dialog<Void> {
         if (selected == null) {
             return;
         }
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
+        Alert confirm = Styles.alert(Alert.AlertType.CONFIRMATION,
                 Messages.get("settings.confirmDeleteBooru"), ButtonType.YES, ButtonType.NO);
         confirm.initOwner(owner);
         confirm.showAndWait()
@@ -200,7 +220,7 @@ public class SettingsDialog extends Dialog<Void> {
     }
 
     private void clearCache(Runnable onCleared) {
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
+        Alert confirm = Styles.alert(Alert.AlertType.CONFIRMATION,
                 Messages.get("settings.confirmClearCache"),
                 ButtonType.YES, ButtonType.NO);
         confirm.initOwner(owner);
@@ -209,11 +229,11 @@ public class SettingsDialog extends Dialog<Void> {
                 .ifPresent(button -> {
                     try {
                         int deleted = CacheManager.clear();
-                        Alert done = new Alert(Alert.AlertType.INFORMATION, Messages.get("settings.cacheCleared", String.valueOf(deleted)));
+                        Alert done = Styles.alert(Alert.AlertType.INFORMATION, Messages.get("settings.cacheCleared", String.valueOf(deleted)));
                         done.initOwner(owner);
                         done.showAndWait();
                     } catch (IOException e) {
-                        Alert error = new Alert(Alert.AlertType.ERROR, Messages.get("settings.clearCacheError", e.getMessage()));
+                        Alert error = Styles.alert(Alert.AlertType.ERROR, Messages.get("settings.clearCacheError", e.getMessage()));
                         error.initOwner(owner);
                         error.showAndWait();
                     }
@@ -259,7 +279,7 @@ public class SettingsDialog extends Dialog<Void> {
         try {
             context.saveUserConfig();
         } catch (IOException e) {
-            Alert error = new Alert(Alert.AlertType.ERROR, Messages.get("common.saveError", e.getMessage()));
+            Alert error = Styles.alert(Alert.AlertType.ERROR, Messages.get("common.saveError", e.getMessage()));
             error.initOwner(owner);
             error.showAndWait();
         }
