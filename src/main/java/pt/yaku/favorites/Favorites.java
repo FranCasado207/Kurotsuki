@@ -1,13 +1,17 @@
 package pt.yaku.favorites;
 
 import java.sql.SQLException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import pt.yaku.booru.Post;
 import pt.yaku.i18n.Messages;
 import pt.yaku.storage.LibraryStore;
+import pt.yaku.storage.StoreWrites;
 import lombok.Getter;
 
 public class Favorites {
@@ -18,10 +22,19 @@ public class Favorites {
     private final ObservableList<String> tags = FXCollections.observableArrayList();
     @Getter
     private final ObservableList<Post> posts = FXCollections.observableArrayList();
+    // Lookups happen per grid cell / tag chip, so keep them O(1) instead of scanning the lists.
+    private Set<String> tagSet = Set.of();
+    private Set<String> postKeys = Set.of();
 
     public Favorites(LibraryStore store, Consumer<String> onError) {
         this.store = store;
         this.onError = onError;
+        tags.addListener((ListChangeListener<String>) change -> tagSet = new HashSet<>(tags));
+        posts.addListener((ListChangeListener<Post>) change -> {
+            Set<String> keys = new HashSet<>();
+            posts.forEach(post -> keys.add(post.key()));
+            postKeys = keys;
+        });
         try {
             tags.setAll(store.favoriteTags());
             posts.setAll(store.favoritePosts());
@@ -31,24 +44,20 @@ public class Favorites {
     }
 
     public boolean isTagFavorite(String tag) {
-        return tags.contains(tag);
+        return tagSet.contains(tag);
     }
 
     public void toggleTag(String tag) {
-        try {
-            if (tags.remove(tag)) {
-                store.removeFavoriteTag(tag);
-            } else {
-                tags.add(tag);
-                store.addFavoriteTag(tag);
-            }
-        } catch (SQLException e) {
-            onError.accept(Messages.get("favorites.saveError", e.getMessage()));
+        if (tags.remove(tag)) {
+            persist(() -> store.removeFavoriteTag(tag), () -> tags.add(tag));
+        } else {
+            tags.add(tag);
+            persist(() -> store.addFavoriteTag(tag), () -> tags.remove(tag));
         }
     }
 
     public boolean isPostFavorite(String key) {
-        return posts.stream().anyMatch(post -> post.key().equals(key));
+        return postKeys.contains(key);
     }
 
     public void togglePost(Post post) {
@@ -56,10 +65,15 @@ public class Favorites {
         if (!wasFavorite) {
             posts.add(post);
         }
-        try {
-            store.setFavoritePost(post, !wasFavorite);
-        } catch (SQLException e) {
-            onError.accept(Messages.get("favorites.saveError", e.getMessage()));
-        }
+        persist(() -> store.setFavoritePost(post, !wasFavorite), () -> {
+            posts.removeIf(favorite -> favorite.key().equals(post.key()));
+            if (wasFavorite) {
+                posts.add(post);
+            }
+        });
+    }
+
+    private void persist(LibraryStore.SqlTask write, Runnable undo) {
+        StoreWrites.persist(store, "favorites.saveError", onError, write, undo);
     }
 }

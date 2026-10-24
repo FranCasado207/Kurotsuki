@@ -10,6 +10,7 @@ import javafx.collections.ObservableList;
 import pt.yaku.booru.Post;
 import pt.yaku.i18n.Messages;
 import pt.yaku.storage.LibraryStore;
+import pt.yaku.storage.StoreWrites;
 import lombok.Getter;
 
 public class PostFolders {
@@ -40,41 +41,40 @@ public class PostFolders {
         }
         PostFolder folder = new PostFolder(trimmed, List.of());
         folders.add(folder);
-        try {
-            store.createFolder(trimmed);
-        } catch (SQLException e) {
-            onError.accept(Messages.get("folders.saveError", e.getMessage()));
-        }
+        persist(() -> store.createFolder(trimmed), () -> folders.remove(folder));
         return folder;
     }
 
     public void delete(PostFolder folder) {
+        int index = folders.indexOf(folder);
         folders.remove(folder);
-        try {
-            store.deleteFolder(folder.getName());
-        } catch (SQLException e) {
-            onError.accept(Messages.get("folders.saveError", e.getMessage()));
-        }
+        persist(() -> store.deleteFolder(folder.getName()), () -> {
+            if (!folders.contains(folder)) {
+                folders.add(Math.min(Math.max(index, 0), folders.size()), folder);
+            }
+        });
     }
 
     public void addPost(PostFolder folder, Post post) {
         if (!folder.contains(post.key())) {
             folder.getPosts().add(post);
-            try {
-                store.addToFolder(folder.getName(), post);
-            } catch (SQLException e) {
-                onError.accept(Messages.get("folders.saveError", e.getMessage()));
-            }
+            persist(() -> store.addToFolder(folder.getName(), post),
+                    () -> folder.getPosts().removeIf(item -> item.key().equals(post.key())));
         }
     }
 
     public void removePost(PostFolder folder, Post post) {
+        int index = folder.getPosts().indexOf(post);
         if (folder.getPosts().removeIf(item -> item.key().equals(post.key()))) {
-            try {
-                store.removeFromFolder(folder.getName(), post);
-            } catch (SQLException e) {
-                onError.accept(Messages.get("folders.saveError", e.getMessage()));
-            }
+            persist(() -> store.removeFromFolder(folder.getName(), post), () -> {
+                if (!folder.contains(post.key())) {
+                    folder.getPosts().add(Math.min(Math.max(index, 0), folder.getPosts().size()), post);
+                }
+            });
         }
+    }
+
+    private void persist(LibraryStore.SqlTask write, Runnable undo) {
+        StoreWrites.persist(store, "folders.saveError", onError, write, undo);
     }
 }

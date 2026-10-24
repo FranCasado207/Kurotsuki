@@ -11,7 +11,11 @@ public final class Dialogs {
     }
 
     public static Optional<String> askText(Window owner, String title, String header) {
-        TextInputDialog dialog = new TextInputDialog();
+        return askText(owner, title, header, "");
+    }
+
+    public static Optional<String> askText(Window owner, String title, String header, String initial) {
+        TextInputDialog dialog = new TextInputDialog(initial);
         dialog.initOwner(owner);
         Styles.apply(dialog.getDialogPane());
         dialog.setTitle(title);

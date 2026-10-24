@@ -108,7 +108,7 @@ public class SettingsDialog extends Dialog<Void> {
         Label cacheInfo = new Label();
         Runnable refreshCacheInfo = () -> {
             try {
-                cacheInfo.setText(Messages.get("settings.cacheSize", formatSize(CacheManager.sizeBytes())));
+                cacheInfo.setText(Messages.get("settings.cacheSize", formatSize(context.getCache().sizeBytes())));
             } catch (IOException e) {
                 cacheInfo.setText(Messages.get("settings.cacheSizeError", e.getMessage()));
             }
@@ -228,7 +228,7 @@ public class SettingsDialog extends Dialog<Void> {
                 .filter(button -> button == ButtonType.YES)
                 .ifPresent(button -> {
                     try {
-                        int deleted = CacheManager.clear();
+                        int deleted = context.getCache().clear();
                         Alert done = Styles.alert(Alert.AlertType.INFORMATION, Messages.get("settings.cacheCleared", String.valueOf(deleted)));
                         done.initOwner(owner);
                         done.showAndWait();

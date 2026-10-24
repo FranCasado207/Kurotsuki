@@ -402,7 +402,7 @@ public class ImageGrid {
         Tooltip.install(tile, new Tooltip("ID " + post.getId() + " - " + post.getRating()
                 + "\n" + post.getTags()));
 
-        ImageLoader.load(post.getPreviewUrl(), THUMBNAIL_SIZE).thenAccept(image -> {
+        library.images().load(post.getPreviewUrl(), THUMBNAIL_SIZE).thenAccept(image -> {
             if (image != null) {
                 Platform.runLater(() -> view.setImage(image));
             }

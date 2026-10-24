@@ -6,6 +6,6 @@ if [ -z "${GDK_BACKEND:-}" ] && [ -n "${WAYLAND_DISPLAY:-}" ]; then
 fi
 
 exec "$DIR/runtime/bin/java" \
-    --enable-native-access=javafx.graphics \
+    --enable-native-access=javafx.graphics,javafx.media,ALL-UNNAMED \
     -cp "$DIR/lib/*" \
     pt.yaku.App "$@"

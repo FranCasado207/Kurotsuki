@@ -18,7 +18,7 @@ import javafx.scene.input.KeyCombination;
 import javafx.stage.Stage;
 import pt.yaku.context.ApplicationContext;
 import pt.yaku.i18n.Messages;
-import pt.yaku.user.config.ConfigManager;
+import pt.yaku.user.config.AppPaths;
 
 public final class MainMenuBar {
 
@@ -59,7 +59,7 @@ public final class MainMenuBar {
         openDownloads.setOnAction(event -> openDownloadsFolder(owner, context));
 
         MenuItem openData = new MenuItem(Messages.get("menu.openData"));
-        openData.setOnAction(event -> openFolder(owner, ConfigManager.getFolderPath()));
+        openData.setOnAction(event -> openFolder(owner, AppPaths.get().data()));
 
         Menu tools = new Menu(Messages.get("menu.tools"));
         tools.getItems().addAll(settings, new SeparatorMenuItem(), reload,

@@ -1,6 +1,7 @@
 package pt.yaku.booru.hydrus;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -20,8 +21,15 @@ import pt.yaku.booru.TagCategory;
 public class HydrusClient implements BooruClient {
 
     private static final int TAG_SERVICE_TYPE_LOCAL = 5;
-    private static final String KEY_PARAM = "Hydrus-Client-API-Access-Key";
+    private static final int ID_BATCH = 1000;
     private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().create();
+
+    private static final Map<String, JsonArray> ID_CACHE = new LinkedHashMap<>(4, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, JsonArray> eldest) {
+            return size() > 4;
+        }
+    };
 
     private final HydrusApi api;
     private final String baseUrl;
@@ -43,14 +51,12 @@ public class HydrusClient implements BooruClient {
                 query.add(tag);
             }
         }
-        query.add("system:limit=" + upTo);
-        JsonObject search = JsonParser.parseString(api.searchFiles(accessKey, GSON.toJson(query))).getAsJsonObject();
-        JsonArray allIds = search.getAsJsonArray("file_ids");
-        if (allIds == null || allIds.size() <= from) {
+        JsonArray allIds = fileIds(query, from, upTo);
+        if (allIds.size() <= from) {
             return List.of();
         }
         JsonArray fileIds = new JsonArray();
-        for (int i = from; i < allIds.size(); i++) {
+        for (int i = from; i < Math.min(allIds.size(), upTo); i++) {
             fileIds.add(allIds.get(i));
         }
         JsonObject metadata = JsonParser.parseString(api.fileMetadata(accessKey, fileIds.toString())).getAsJsonObject();
@@ -60,6 +66,35 @@ public class HydrusClient implements BooruClient {
             posts.add(toPost(element.getAsJsonObject(), localTagServices));
         }
         return posts;
+    }
+
+    /**
+     * Hydrus can only return "the first N ids", so page N would otherwise cost O(N). Fetch ids in batches and
+     * keep the most recent queries so following pages are served without another search.
+     */
+    private JsonArray fileIds(List<String> query, int from, int upTo) {
+        String cacheKey = baseUrl + "|" + String.join(" ", query);
+        if (from > 0) {
+            JsonArray cached;
+            synchronized (ID_CACHE) {
+                cached = ID_CACHE.get(cacheKey);
+            }
+            if (cached != null && (cached.size() >= upTo || cached.size() % ID_BATCH != 0)) {
+                return cached;
+            }
+        }
+        int fetchLimit = ((upTo + ID_BATCH - 1) / ID_BATCH) * ID_BATCH;
+        List<String> search = new ArrayList<>(query);
+        search.add("system:limit=" + fetchLimit);
+        JsonObject result = JsonParser.parseString(api.searchFiles(accessKey, GSON.toJson(search))).getAsJsonObject();
+        JsonArray ids = result.getAsJsonArray("file_ids");
+        if (ids == null) {
+            ids = new JsonArray();
+        }
+        synchronized (ID_CACHE) {
+            ID_CACHE.put(cacheKey, ids);
+        }
+        return ids;
     }
 
     @Override
@@ -89,7 +124,9 @@ public class HydrusClient implements BooruClient {
     }
 
     private String url(String endpoint, long fileId) {
-        return baseUrl + "/" + endpoint + "?file_id=" + fileId + "&" + KEY_PARAM + "=" + accessKey;
+        // The access key is deliberately not part of the URL: URLs are persisted and used as cache keys.
+        // pt.yaku.client.RequestAuth adds it as a header when the file is fetched.
+        return baseUrl + "/" + endpoint + "?file_id=" + fileId;
     }
 
     private static List<String> displayTags(JsonObject file, List<String> localTagServices) {

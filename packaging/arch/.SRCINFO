@@ -1,6 +1,6 @@
 pkgbase = kurotsuki
 	pkgdesc = Desktop booru browser (JavaFX) for Gelbooru, Safebooru, Danbooru, Moebooru, Shimmie, e621 and Szurubooru
-	pkgver = 0.5
+	pkgver = 0.6_next
 	pkgrel = 1
 	url = https://github.com/FranCasado207/Kurotsuki
 	arch = x86_64
@@ -15,7 +15,7 @@ pkgbase = kurotsuki
 	depends = gst-libav
 	options = !strip
 	options = !debug
-	source = kurotsuki::git+https://github.com/FranCasado207/Kurotsuki.git#branch=main
+	source = kurotsuki::git+file:///mnt/HDD/Development/kurotsuki#branch=feat/next
 	sha256sums = SKIP
 
 pkgname = kurotsuki

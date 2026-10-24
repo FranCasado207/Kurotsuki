@@ -9,7 +9,7 @@ import pt.yaku.booru.TagCategory;
 @Getter
 @Setter
 @NoArgsConstructor
-public class DanbooruPost {
+public class DanbooruPost{
     private long id;
     private int score;
     private String md5;

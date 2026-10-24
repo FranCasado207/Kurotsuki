@@ -3,6 +3,9 @@ package pt.yaku.client;
 import java.util.List;
 
 import org.apache.cxf.jaxrs.client.JAXRSClientFactory;
+import org.apache.cxf.jaxrs.client.WebClient;
+import org.apache.cxf.transport.http.HTTPConduit;
+import org.apache.cxf.transports.http.configuration.HTTPClientPolicy;
 
 import pt.yaku.booru.BooruClient;
 import pt.yaku.booru.BooruEngine;
@@ -30,6 +33,9 @@ import pt.yaku.user.config.BooruConfiguration;
 
 public class RestClientConfiguration {
 
+    private static final long CONNECT_TIMEOUT_MS = 15_000;
+    private static final long RECEIVE_TIMEOUT_MS = 30_000;
+
     private final ApplicationContext context;
 
     public RestClientConfiguration(ApplicationContext context) {
@@ -37,7 +43,13 @@ public class RestClientConfiguration {
     }
 
     public <T> T create(Class<T> apiInterface, String baseUrl, List<?> providers) {
-        return JAXRSClientFactory.create(baseUrl, apiInterface, providers);
+        T proxy = JAXRSClientFactory.create(baseUrl, apiInterface, providers);
+        HTTPConduit conduit = WebClient.getConfig(proxy).getHttpConduit();
+        HTTPClientPolicy policy = new HTTPClientPolicy();
+        policy.setConnectionTimeout(CONNECT_TIMEOUT_MS);
+        policy.setReceiveTimeout(RECEIVE_TIMEOUT_MS);
+        conduit.setClient(policy);
+        return proxy;
     }
 
     public BooruClient clientFor(BooruConfiguration booru) {

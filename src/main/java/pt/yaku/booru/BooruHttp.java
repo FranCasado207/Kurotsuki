@@ -1,11 +1,15 @@
 package pt.yaku.booru;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Properties;
 
 public final class BooruHttp {
 
-    public static final String USER_AGENT = "kurotsuki/0.5 (desktop booru client)";
+    public static final String USER_AGENT = "kurotsuki/" + version()
+            + " (desktop booru client; +https://github.com/FranCasado207/Kurotsuki)";
 
     private BooruHttp() {
     }
@@ -42,6 +46,20 @@ public final class BooruHttp {
             case "e" -> "explicit";
             default -> letter;
         };
+    }
+
+    private static String version() {
+        try (InputStream in = BooruHttp.class.getResourceAsStream("/version.properties")) {
+            if (in != null) {
+                Properties properties = new Properties();
+                properties.load(in);
+                String version = properties.getProperty("version", "dev");
+                return version.startsWith("${") ? "dev" : version;
+            }
+        } catch (IOException e) {
+            // fall through to the default
+        }
+        return "dev";
     }
 
     private static String encode(String value) {

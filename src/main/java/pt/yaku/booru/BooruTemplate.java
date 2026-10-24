@@ -30,13 +30,22 @@ public enum BooruTemplate {
     }
 
     public static String refererFor(String url) {
-        String host = URI.create(url).getHost();
+        URI uri;
+        try {
+            uri = URI.create(url);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+        String host = uri.getHost();
+        if (host == null) {
+            return null;
+        }
         for (BooruTemplate template : values()) {
             String domain = URI.create(template.defaultBaseUrl).getHost();
-            if (host != null && (host.equals(domain) || host.endsWith("." + domain))) {
+            if (host.equals(domain) || host.endsWith("." + domain)) {
                 return template.defaultBaseUrl + "/";
             }
         }
-        return URI.create(url).resolve("/").toString();
+        return uri.resolve("/").toString();
     }
 }

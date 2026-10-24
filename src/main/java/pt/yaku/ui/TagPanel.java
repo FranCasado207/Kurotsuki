@@ -20,6 +20,7 @@ import javafx.scene.layout.VBox;
 import pt.yaku.booru.Post;
 import pt.yaku.booru.TagCategory;
 import pt.yaku.favorites.Favorites;
+import pt.yaku.favorites.TagGroups;
 import pt.yaku.i18n.Messages;
 
 public class TagPanel extends VBox {
@@ -29,11 +30,13 @@ public class TagPanel extends VBox {
 
     private final VBox chips = new VBox(4);
     private final Favorites favorites;
+    private final TagGroups tagGroups;
     private Post post;
     private final Consumer<String> onTagSearch;
 
-    public TagPanel(Post post, Favorites favorites, Consumer<String> onTagSearch) {
+    public TagPanel(Post post, Favorites favorites, TagGroups tagGroups, Consumer<String> onTagSearch) {
         this.favorites = favorites;
+        this.tagGroups = tagGroups;
         getStyleClass().add("card");
         setSpacing(8);
         setPadding(new Insets(12));
@@ -96,6 +99,13 @@ public class TagPanel extends VBox {
         chip.setWrapText(false);
         chip.setMaxWidth(Region.USE_PREF_SIZE);
         chip.setContextMenu(chipMenu(tag, onTagSearch));
+        chip.setOnDragDetected(event -> {
+            javafx.scene.input.Dragboard board = chip.startDragAndDrop(javafx.scene.input.TransferMode.COPY);
+            javafx.scene.input.ClipboardContent content = new javafx.scene.input.ClipboardContent();
+            content.putString(tag);
+            board.setContent(content);
+            event.consume();
+        });
         applyFavoriteMark(chip);
         return chip;
     }
@@ -106,13 +116,17 @@ public class TagPanel extends VBox {
         MenuItem search = new MenuItem(Messages.get("tagPanel.search"));
         search.setOnAction(event -> onTagSearch.accept(tag));
 
-        ContextMenu menu = new ContextMenu(favorite, search);
+        ContextMenu menu = new ContextMenu(favorite, search, TagGroupMenu.create(tagGroups, tag, this::window));
         menu.setOnShowing(event -> {
             favorite.setText(favorites.isTagFavorite(tag)
                     ? Messages.get("tagPanel.unfavorite") : Messages.get("common.favorite"));
             search.setDisable(onTagSearch == null);
         });
         return menu;
+    }
+
+    private javafx.stage.Window window() {
+        return getScene() == null ? null : getScene().getWindow();
     }
 
     private void refreshFavoriteMarks() {

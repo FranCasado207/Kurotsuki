@@ -19,7 +19,15 @@ public class App extends Application {
     public void init() throws IOException {
         context = new ApplicationContext();
         Messages.setLanguage(context.getUserConfig().getLanguage());
-        CacheManager.init(context);
+        Thread trimmer = new Thread(() -> {
+            try {
+                context.getCache().trim(CacheManager.DEFAULT_MAX_BYTES);
+            } catch (IOException e) {
+                System.getLogger(App.class.getName()).log(System.Logger.Level.WARNING, "Cache trim failed", e);
+            }
+        }, "cache-trim");
+        trimmer.setDaemon(true);
+        trimmer.start();
     }
 
     @Override

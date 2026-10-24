@@ -126,7 +126,7 @@ public class PostViewer extends Stage {
         BorderPane root = new BorderPane();
         root.setCenter(center);
         root.setBottom(bottom);
-        tagPanel = new TagPanel(post, library.favorites(), onTagSearch);
+        tagPanel = new TagPanel(post, library.favorites(), library.tagGroups(), onTagSearch);
         VBox side = new VBox(tagPanel);
         side.getStyleClass().add("viewer-side");
         VBox.setVgrow(tagPanel, Priority.ALWAYS);
@@ -245,7 +245,7 @@ public class PostViewer extends Stage {
         }
 
         String urlExtension = extensionOf(url);
-        CacheManager.fetch(url)
+        context.getCache().fetch(url)
                 .thenApplyAsync(file -> prepare(file, CacheManager.detectExtension(file, urlExtension)))
                 .whenComplete((prepared, error) -> Platform.runLater(() -> {
                     if (gen != generation) {

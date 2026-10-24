@@ -2,47 +2,56 @@ package pt.yaku.cache;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HexFormat;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import pt.yaku.context.ApplicationContext;
-import pt.yaku.user.config.ConfigManager;
-import pt.yaku.ui.ImageLoader;
 
 public final class CacheManager {
 
-    private static final String DEFAULT_FOLDER_NAME = ".cache";
+    /** Fetches {@code url} into the given file. */
+    @FunctionalInterface
+    public interface Downloader {
+        CompletableFuture<Path> download(String url, Path target);
+    }
+
     private static final Pattern CACHE_FILE = Pattern.compile(
             "[0-9a-f]{64}(\\.part)?|[0-9a-f]{64}\\.[a-z0-9]+(\\.part)?");
 
-    private static ApplicationContext context;
+    public static final long DEFAULT_MAX_BYTES = 2L << 30;
+    private static final long STALE_PART_MILLIS = 60 * 60 * 1000L;
 
-    private CacheManager() {
+    private final Map<Path, CompletableFuture<Path>> inFlight = new ConcurrentHashMap<>();
+    private final Supplier<String> customFolder;
+    private final Path defaultFolder;
+    private final Downloader downloader;
+
+    public CacheManager(Supplier<String> customFolder, Path defaultFolder, Downloader downloader) {
+        this.customFolder = customFolder;
+        this.defaultFolder = defaultFolder;
+        this.downloader = downloader;
     }
 
-    public static void init(ApplicationContext applicationContext) {
-        context = applicationContext;
-    }
-
-    public static Path folder() throws IOException {
-        String custom = context.getUserConfig().getCacheFolder();
-        Path folder = custom != null && !custom.isBlank()
-                ? Path.of(custom)
-                : ConfigManager.getFolderPath().resolve(DEFAULT_FOLDER_NAME);
+    public Path folder() throws IOException {
+        String custom = customFolder.get();
+        Path folder = custom != null && !custom.isBlank() ? Path.of(custom) : defaultFolder;
         Files.createDirectories(folder);
         return folder;
     }
 
-    public static CompletableFuture<Path> fetch(String url) {
+    public CompletableFuture<Path> fetch(String url) {
         Path cached;
         try {
             cached = pathFor(url);
@@ -52,19 +61,53 @@ public final class CacheManager {
         if (Files.isRegularFile(cached)) {
             return CompletableFuture.completedFuture(cached);
         }
-        Path partial = cached.resolveSibling(cached.getFileName() + ".part");
-        return ImageLoader.download(url, partial).thenApply(downloaded -> {
-            try {
-                Files.move(downloaded, cached, StandardCopyOption.REPLACE_EXISTING,
-                        StandardCopyOption.ATOMIC_MOVE);
-                return cached;
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-        });
+        // Concurrent requests for the same URL share one download instead of racing on the same .part file.
+        return inFlight.computeIfAbsent(cached, path -> downloader.download(url, path)
+                .whenComplete((result, error) -> inFlight.remove(path)));
     }
 
-    public static long sizeBytes() throws IOException {
+    /**
+     * Removes stale partial downloads and, if the cache exceeds {@code maxBytes}, the oldest files first.
+     */
+    public void trim(long maxBytes) throws IOException {
+        long staleBefore = System.currentTimeMillis() - STALE_PART_MILLIS;
+        List<Path> files;
+        try (Stream<Path> stream = cacheFiles()) {
+            files = stream.toList();
+        }
+        List<Path> complete = new ArrayList<>();
+        long total = 0;
+        for (Path file : files) {
+            if (file.getFileName().toString().endsWith(".part")) {
+                if (Files.getLastModifiedTime(file).toMillis() < staleBefore) {
+                    Files.deleteIfExists(file);
+                }
+                continue;
+            }
+            complete.add(file);
+            total += Files.size(file);
+        }
+        complete.sort(Comparator.comparingLong(file -> lastModified(file)));
+        for (Path file : complete) {
+            if (total <= maxBytes) {
+                break;
+            }
+            long size = Files.size(file);
+            if (Files.deleteIfExists(file)) {
+                total -= size;
+            }
+        }
+    }
+
+    private static long lastModified(Path file) {
+        try {
+            return Files.getLastModifiedTime(file).toMillis();
+        } catch (IOException e) {
+            return 0;
+        }
+    }
+
+    public long sizeBytes() throws IOException {
         try (Stream<Path> files = cacheFiles()) {
             return files.mapToLong(file -> {
                 try {
@@ -76,7 +119,7 @@ public final class CacheManager {
         }
     }
 
-    public static int clear() throws IOException {
+    public int clear() throws IOException {
         int deleted = 0;
         try (Stream<Path> files = cacheFiles()) {
             for (Path file : files.toList()) {
@@ -88,13 +131,13 @@ public final class CacheManager {
         return deleted;
     }
 
-    private static Stream<Path> cacheFiles() throws IOException {
+    private Stream<Path> cacheFiles() throws IOException {
         return Files.list(folder())
                 .filter(file -> CACHE_FILE.matcher(file.getFileName().toString()).matches())
                 .filter(Files::isRegularFile);
     }
 
-    private static Path pathFor(String url) throws IOException {
+    private Path pathFor(String url) throws IOException {
         return folder().resolve(hash(url));
     }
 

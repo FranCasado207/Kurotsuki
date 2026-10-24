@@ -1,24 +1,13 @@
 package pt.yaku;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class AppTest
-    extends TestCase
-{
-    public AppTest( String testName )
-    {
-        super( testName );
-    }
+import org.junit.jupiter.api.Test;
 
-    public static Test suite()
-    {
-        return new TestSuite( AppTest.class );
-    }
+public class AppTest {
 
-    public void testApp()
-    {
-        assertTrue( true );
+    @Test
+    public void testApp() {
+        assertTrue(true);
     }
 }
