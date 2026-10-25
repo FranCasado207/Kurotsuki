@@ -12,7 +12,10 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.Separator;
+import javafx.scene.control.Spinner;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
@@ -29,7 +32,11 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Window;
 import pt.yaku.cache.CacheManager;
 import pt.yaku.context.ApplicationContext;
+import pt.yaku.download.FileNameTemplate;
+import pt.yaku.download.SidecarFormat;
+import pt.yaku.download.comic.ArchiveFormat;
 import pt.yaku.user.config.BooruConfiguration;
+import pt.yaku.user.config.UserConfiguration;
 import pt.yaku.user.config.TagBlacklist;
 import pt.yaku.i18n.Messages;
 
@@ -40,7 +47,7 @@ public class SettingsDialog extends Dialog<Void> {
     private final ObservableList<BooruConfiguration> items;
     private final TableView<BooruConfiguration> table = new TableView<>();
 
-    public SettingsDialog(Window owner, ApplicationContext context) {
+    public SettingsDialog(Window owner, ApplicationContext context, Runnable onForgetDownloads) {
         this.owner = owner;
         this.context = context;
         Styles.apply(getDialogPane());
@@ -149,8 +156,94 @@ public class SettingsDialog extends Dialog<Void> {
         });
         HBox languageRow = new HBox(10, new Label(Messages.get("settings.language")), languageBox);
 
+        ChoiceBox<String> formatBox = new ChoiceBox<>(FXCollections.observableArrayList(ArchiveFormat.extensions()));
+        formatBox.setValue(ArchiveFormat.parse(context.getUserConfig().getPoolArchiveFormat())
+                .orElse(ArchiveFormat.DEFAULT).getExtension());
+        formatBox.setOnAction(event -> {
+            context.getUserConfig().setPoolArchiveFormat(formatBox.getValue());
+            persist();
+        });
+        Label formatHint = new Label(Messages.get("settings.poolFormatHint"));
+        formatHint.getStyleClass().add("muted-text");
+        formatHint.setWrapText(true);
+        VBox formatRow = new VBox(4,
+                new HBox(10, new Label(Messages.get("settings.poolFormat")), formatBox), formatHint);
+
+        Spinner<Integer> readerMemory = new Spinner<>(UserConfiguration.MIN_READER_CACHE_MB, 8192,
+                context.getUserConfig().effectiveReaderCacheMegabytes(), 32);
+        readerMemory.setEditable(true);
+        readerMemory.setPrefWidth(110);
+        readerMemory.valueProperty().addListener((obs, was, is) -> {
+            if (is != null) {
+                context.getUserConfig().setReaderCacheMegabytes(is);
+                persist();
+            }
+        });
+        Label readerMemoryHint = new Label(Messages.get("settings.readerMemoryHint"));
+        readerMemoryHint.getStyleClass().add("muted-text");
+        readerMemoryHint.setWrapText(true);
+        CheckBox readerBlacklist = new CheckBox(Messages.get("settings.readerBlacklist"));
+        readerBlacklist.setSelected(context.getUserConfig().isReaderHonorBlacklist());
+        readerBlacklist.setOnAction(event -> {
+            context.getUserConfig().setReaderHonorBlacklist(readerBlacklist.isSelected());
+            persist();
+        });
+        VBox readerBox = new VBox(8,
+                new HBox(10, new Label(Messages.get("settings.readerMemory")), readerMemory), readerMemoryHint,
+                readerBlacklist);
+
+        TextField templateField = new TextField(Objects.toString(context.getUserConfig().getDownloadTemplate(), ""));
+        templateField.setPromptText(FileNameTemplate.DEFAULT);
+        templateField.setPrefWidth(320);
+        templateField.textProperty().addListener((obs, was, is) -> {
+            context.getUserConfig().setDownloadTemplate(is.isBlank() ? null : is.strip());
+            persist();
+        });
+        Label templateHint = new Label(Messages.get("settings.downloadTemplateHint", FileNameTemplate.TOKENS));
+        templateHint.getStyleClass().add("muted-text");
+        templateHint.setWrapText(true);
+
+        ChoiceBox<SidecarFormat> sidecarBox = new ChoiceBox<>(FXCollections.observableArrayList(SidecarFormat.values()));
+        sidecarBox.setConverter(new javafx.util.StringConverter<>() {
+            @Override
+            public String toString(SidecarFormat format) {
+                return switch (format) {
+                    case NONE -> Messages.get("settings.sidecarNone");
+                    case TXT -> Messages.get("settings.sidecarTxt");
+                    case JSON -> Messages.get("settings.sidecarJson");
+                };
+            }
+
+            @Override
+            public SidecarFormat fromString(String text) {
+                return SidecarFormat.NONE;
+            }
+        });
+        sidecarBox.setValue(SidecarFormat.parse(context.getUserConfig().getDownloadSidecar()));
+        sidecarBox.setOnAction(event -> {
+            context.getUserConfig().setDownloadSidecar(sidecarBox.getValue().name().toLowerCase());
+            persist();
+        });
+        CheckBox redownload = new CheckBox(Messages.get("settings.redownload"));
+        redownload.setSelected(context.getUserConfig().isRedownloadKnown());
+        redownload.setOnAction(event -> {
+            context.getUserConfig().setRedownloadKnown(redownload.isSelected());
+            persist();
+        });
+        Button forgetDownloads = new Button(Messages.get("settings.forgetDownloads"));
+        forgetDownloads.setOnAction(event -> {
+            onForgetDownloads.run();
+            Alert notice = Styles.alert(Alert.AlertType.INFORMATION, Messages.get("settings.forgotDownloads"));
+            notice.initOwner(owner);
+            notice.showAndWait();
+        });
+        VBox downloadBox = new VBox(8,
+                new HBox(10, new Label(Messages.get("settings.downloadTemplate")), templateField), templateHint,
+                new HBox(10, new Label(Messages.get("settings.downloadSidecar")), sidecarBox),
+                redownload, forgetDownloads);
+
         VBox boorusTab = new VBox(10, table, buttons);
-        VBox generalTab = new VBox(12, languageRow, folderRow);
+        VBox generalTab = new VBox(12, languageRow, folderRow, downloadBox, formatRow, new Separator(), readerBox);
         TabPane tabs = new TabPane(
                 tab("settings.tabGeneral", generalTab),
                 tab("settings.tabBoorus", boorusTab),
@@ -160,7 +253,8 @@ public class SettingsDialog extends Dialog<Void> {
         VBox content = new VBox(tabs);
         content.setPadding(new Insets(10));
 
-        getDialogPane().setPrefSize(800, 520);
+        setResizable(true);
+        getDialogPane().setPrefSize(820, 640);
         getDialogPane().setContent(content);
         getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
     }
@@ -168,7 +262,10 @@ public class SettingsDialog extends Dialog<Void> {
     private static Tab tab(String messageKey, javafx.scene.Node content) {
         VBox body = new VBox(10, content);
         body.setPadding(new Insets(12));
-        Tab tab = new Tab(Messages.get(messageKey), body);
+        javafx.scene.control.ScrollPane scroll = new javafx.scene.control.ScrollPane(body);
+        scroll.setFitToWidth(true);
+        scroll.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
+        Tab tab = new Tab(Messages.get(messageKey), scroll);
         tab.setClosable(false);
         return tab;
     }

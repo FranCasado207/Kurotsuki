@@ -100,7 +100,7 @@ public class DownloadBar {
                 setGraphic(null);
                 return;
             }
-            name.setText(item.getPost().getId() + " - " + item.getPost().getImage());
+            name.setText(item.title());
             progress.progressProperty().bind(item.progressProperty());
             state.textProperty().bind(item.labelProperty());
             statusListener = (obs, oldStatus, newStatus) -> applyStatus(newStatus);

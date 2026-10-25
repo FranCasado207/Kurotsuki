@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.css.PseudoClass;
 import javafx.collections.ListChangeListener;
 import javafx.scene.control.Alert;
@@ -25,6 +27,7 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.TransferMode;
 import javafx.scene.shape.SVGPath;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -53,9 +56,11 @@ public class Sidebar {
     private final ListView<BooruConfiguration> booruList = new ListView<>();
     private final TextField searchField = new TextField();
     private final Button searchButton = new Button(Messages.get("common.search"));
+    private final Button poolsButton = new Button(Messages.get("pools.button"));
     private volatile BooruConfiguration currentBooru;
 
-    public Sidebar(ApplicationContext context, Library library, SearchHandler handler) {
+    public Sidebar(ApplicationContext context, Library library, SearchHandler handler,
+                   Consumer<BooruConfiguration> onPools) {
         this.context = context;
         booruList.setCellFactory(list -> new ListCell<>() {
             @Override
@@ -83,10 +88,18 @@ public class Sidebar {
         searchButton.setOnAction(event ->
                 handler.search(booruList.getSelectionModel().getSelectedItem(), searchField.getText()));
 
+        poolsButton.disableProperty().bind(Bindings.createBooleanBinding(() -> {
+            BooruConfiguration selected = booruList.getSelectionModel().getSelectedItem();
+            return selected == null || !selected.supportsPools();
+        }, booruList.getSelectionModel().selectedItemProperty()));
+        poolsButton.setOnAction(event -> onPools.accept(booruList.getSelectionModel().getSelectedItem()));
+        HBox.setHgrow(searchButton, Priority.ALWAYS);
+        HBox searchRow = new HBox(8, searchButton, poolsButton);
+
         Label boorusTitle = new Label(Messages.get("sidebar.boorusTitle"));
         boorusTitle.getStyleClass().add("section-title");
         searchNode.getChildren().addAll(boorusTitle,
-                booruList, searchField, searchButton);
+                booruList, searchField, searchRow);
 
         buildFavoriteTags(library, handler);
 

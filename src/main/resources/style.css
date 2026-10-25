@@ -298,6 +298,50 @@
     -fx-stroke-width: 1;
 }
 
+/* Card shown when hovering a thumbnail. */
+.hover-card-tooltip {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.hover-card {
+    -fx-background-color: -kt-surface-raised;
+    -fx-background-radius: 8;
+    -fx-border-color: -kt-border;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.55), 14, 0, 0, 3);
+}
+
+.hover-title {
+    -fx-text-fill: -kt-text;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.hover-meta {
+    -fx-text-fill: -kt-text-muted;
+    -fx-font-size: 11px;
+}
+
+.hover-chip {
+    -fx-padding: 1 8;
+    -fx-font-size: 11px;
+}
+
+.hover-rating {
+    -fx-background-radius: 4;
+    -fx-padding: 1 6;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -kt-on-accent;
+}
+
+.hover-rating-safe { -fx-background-color: -kt-success; }
+.hover-rating-questionable { -fx-background-color: -kt-tag-meta; }
+.hover-rating-explicit { -fx-background-color: -kt-tag-artist; }
+.hover-rating-unknown { -fx-background-color: -kt-tag-other; }
+
 .queued-badge {
     -fx-background-color: -kt-accent-alt;
     -fx-text-fill: -kt-on-accent;
@@ -331,4 +375,48 @@
 
 .folder-icon.folder-open {
     -fx-fill: transparent;
+}
+
+/* Pools browser and comic reader */
+.pool-name {
+    -fx-font-weight: bold;
+    -fx-text-fill: -kt-text;
+}
+
+.pool-meta,
+.pool-status {
+    -fx-text-fill: -kt-text-muted;
+    -fx-font-size: 0.9em;
+}
+
+.reader-root,
+.reader-stage,
+.reader-scroll,
+.reader-scroll > .viewport {
+    -fx-background-color: #000000;
+}
+
+.reader-scroll {
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.reader-toolbar {
+    -fx-background-color: -kt-surface;
+    -fx-border-color: -kt-border transparent transparent transparent;
+}
+
+.reader-counter,
+.reader-message {
+    -fx-text-fill: -kt-text-muted;
+}
+
+.pool-state {
+    -fx-text-fill: -kt-accent;
+    -fx-font-size: 0.9em;
+}
+
+.pool-cover {
+    -fx-background-color: -kt-surface-raised;
+    -fx-background-radius: 4;
 }

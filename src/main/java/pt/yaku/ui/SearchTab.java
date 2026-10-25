@@ -19,6 +19,15 @@ import pt.yaku.i18n.Messages;
 public class SearchTab extends Tab implements GridTab {
 
     private static final int PAGE_SIZE = 100;
+    private static final java.util.logging.Logger LOGGER = java.util.logging.Logger.getLogger(SearchTab.class.getName());
+
+    private static String hostOf(BooruConfiguration booru) {
+        try {
+            return java.net.URI.create(booru.getBaseUrl().strip()).getHost();
+        } catch (RuntimeException e) {
+            return "?";
+        }
+    }
 
     private final ApplicationContext context;
     private final BooruConfiguration booru;
@@ -67,7 +76,18 @@ public class SearchTab extends Tab implements GridTab {
         Task<List<Post>> task = new Task<>() {
             @Override
             protected List<Post> call() {
-                return context.getRestConfig().clientFor(booru).searchPosts(tags, page, PAGE_SIZE);
+                long started = System.nanoTime();
+                try {
+                    List<Post> result = context.getRestConfig().clientFor(booru).searchPosts(tags, page, PAGE_SIZE);
+                    LOGGER.info("Search ok: booru=" + booru.getEngine() + " host=" + hostOf(booru) + " page=" + page
+                            + " tagCount=" + (tags == null ? 0 : tags.split("\\s+").length)
+                            + " results=" + result.size() + " ms=" + (System.nanoTime() - started) / 1_000_000);
+                    return result;
+                } catch (RuntimeException e) {
+                    LOGGER.warning("Search failed: booru=" + booru.getEngine() + " host=" + hostOf(booru) + " page="
+                            + page + " ms=" + (System.nanoTime() - started) / 1_000_000 + " error=" + e);
+                    throw e;
+                }
             }
         };
         task.setOnSucceeded(event -> {
@@ -111,6 +131,18 @@ public class SearchTab extends Tab implements GridTab {
         Thread thread = new Thread(task, "booru-search");
         thread.setDaemon(true);
         thread.start();
+    }
+
+    public BooruConfiguration booru() {
+        return booru;
+    }
+
+    public String tags() {
+        return tags;
+    }
+
+    public static int pageSize() {
+        return PAGE_SIZE;
     }
 
     @Override

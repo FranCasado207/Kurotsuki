@@ -69,4 +69,22 @@ public class DownloadQueueTest {
             Files.deleteIfExists(dir);
         }
     }
+
+    @Test
+    public void testUniqueTargetAllowsSubfoldersButNotEscapes() throws IOException {
+        Path dir = Files.createTempDirectory("kurotsuki-dl");
+        try {
+            Path nested = DownloadQueue.uniqueTarget(dir, "booru/artist/a.png");
+            assertEquals("a.png", nested.getFileName().toString());
+            assertEquals("artist", nested.getParent().getFileName().toString());
+            assertTrue(nested.startsWith(dir.toAbsolutePath().normalize()));
+            assertThrows(IOException.class, () -> DownloadQueue.uniqueTarget(dir, "booru/../../a.png"));
+            assertThrows(IOException.class, () -> DownloadQueue.uniqueTarget(dir, "/etc/passwd"));
+            Path first = DownloadQueue.uniqueTarget(dir, "x.png");
+            Path second = DownloadQueue.uniqueTarget(dir, "x.png", java.util.Set.of(first));
+            assertEquals("x (1).png", second.getFileName().toString());
+        } finally {
+            Files.deleteIfExists(dir);
+        }
+    }
 }

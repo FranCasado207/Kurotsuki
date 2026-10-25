@@ -28,6 +28,19 @@ public class BooruConfiguration {
         return template != null ? template.getFlavor() : flavor;
     }
 
+    /** Whether pools can be browsed on this booru: e621, Danbooru-based sites and Moebooru (not Shimmie). */
+    public boolean supportsPools() {
+        BooruEngine engine = getEngine();
+        if (engine == null) {
+            return false;
+        }
+        return switch (engine) {
+            case E621, DANBOORU_SOFTWARE -> true;
+            case MOEBOORU_SHIMMIE -> getFlavor() == BooruFlavor.MOEBOORU;
+            default -> false;
+        };
+    }
+
     public String getBaseUrl() {
         if (customBaseUrl != null) {
             return customBaseUrl;

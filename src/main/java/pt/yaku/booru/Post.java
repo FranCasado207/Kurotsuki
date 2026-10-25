@@ -3,6 +3,8 @@ package pt.yaku.booru;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Getter
@@ -21,6 +23,7 @@ public class Post {
     private String fileUrl;
     private String sampleUrl;
     private String booruBaseUrl;
+    private List<Long> poolIds = new ArrayList<>();
     private Map<String, TagCategory> tagCategories = new java.util.LinkedHashMap<>();
 
     public String key() {

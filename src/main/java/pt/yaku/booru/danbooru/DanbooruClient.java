@@ -1,13 +1,20 @@
 package pt.yaku.booru.danbooru;
 
 import java.util.List;
+import java.util.Map;
 
 import pt.yaku.booru.BooruClient;
+import pt.yaku.booru.BooruHttp;
+import pt.yaku.booru.Pool;
+import pt.yaku.booru.PoolOrder;
+import pt.yaku.booru.Pools;
 import pt.yaku.booru.Post;
 
 public class DanbooruClient implements BooruClient {
 
-    private static final String USER_AGENT = "kurotsuki/0.5 (desktop booru client)";
+    private static final String USER_AGENT = BooruHttp.USER_AGENT;
+    private static final int POOL_PAGE_LIMIT = 200;
+    private static final int MAX_POOL_PAGES = 30;
 
     private final DanbooruApi api;
     private final String baseUrl;
@@ -35,5 +42,33 @@ public class DanbooruClient implements BooruClient {
                 .stream()
                 .map(tag -> tag.getName())
                 .toList();
+    }
+
+    @Override
+    public boolean supportsPools() {
+        return true;
+    }
+
+    @Override
+    public List<Pool> searchPools(String nameContains, String category, PoolOrder order, int page, int limit) {
+        String matches = nameContains == null || nameContains.isBlank() ? null
+                : "*" + nameContains.trim().replace(' ', '_') + "*";
+        return Pools.parseList(api.listPools(USER_AGENT, login, apiKey, matches, category,
+                (order == null ? PoolOrder.UPDATED : order).getApiValue(), page + 1, limit), baseUrl);
+    }
+
+    @Override
+    public Pool getPool(long id) {
+        return Pools.parseOne(api.getPool(USER_AGENT, login, apiKey, id), baseUrl);
+    }
+
+    @Override
+    public List<Post> poolPosts(Pool pool) {
+        return Pools.orderedFromSearch(this, pool, POOL_PAGE_LIMIT, MAX_POOL_PAGES);
+    }
+
+    @Override
+    public Map<Long, Post> poolCovers(List<Pool> pools) {
+        return Pools.coversFromSearch(this, pools);
     }
 }

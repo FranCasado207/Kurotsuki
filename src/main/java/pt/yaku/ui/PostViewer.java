@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import javafx.application.Platform;
@@ -63,6 +64,7 @@ public class PostViewer extends Stage {
     private final Library library;
     private final Consumer<String> onTagSearch;
     private final BooruConfiguration booru;
+    private final BiConsumer<BooruConfiguration, Long> onOpenPool;
     private final List<Post> siblings;
     private int index;
     private Post post;
@@ -78,17 +80,20 @@ public class PostViewer extends Stage {
     private final Button browserButton = new Button(Messages.get("viewer.openBrowser"));
     private final Button favoriteButton = new Button();
     private final MenuButton folderButton = new MenuButton(Messages.get("grid.addToFolder"));
+    private final MenuButton poolsButton = new MenuButton(Messages.get("pools.viewerButton"));
     private final TagPanel tagPanel;
     private int generation;
     private Path cachedFile;
     private Node media;
 
     public PostViewer(Stage owner, ApplicationContext context, Library library,
-                      Post post, List<Post> siblings, Consumer<String> onTagSearch, BooruConfiguration booru) {
+                      Post post, List<Post> siblings, Consumer<String> onTagSearch, BooruConfiguration booru,
+                      BiConsumer<BooruConfiguration, Long> onOpenPool) {
         this.context = context;
         this.library = library;
         this.onTagSearch = onTagSearch;
         this.booru = booru;
+        this.onOpenPool = onOpenPool;
         this.siblings = siblings.contains(post) ? List.copyOf(siblings) : List.of(post);
         this.index = this.siblings.indexOf(post);
         this.post = post;
@@ -119,7 +124,7 @@ public class PostViewer extends Stage {
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox bottom = new HBox(12, downloadButton, browserButton, favoriteButton, folderButton, status, spacer, meta);
+        HBox bottom = new HBox(12, downloadButton, browserButton, favoriteButton, folderButton, poolsButton, status, spacer, meta);
         bottom.setAlignment(Pos.CENTER_LEFT);
         bottom.getStyleClass().add("viewer-toolbar");
 
@@ -175,6 +180,7 @@ public class PostViewer extends Stage {
         mediaArea.getChildren().setAll(loadingView());
         tagPanel.setPost(post);
         updateFavoriteButton();
+        updatePoolsButton();
 
         resolveTagCategories(booru);
         loadOriginal();
@@ -346,6 +352,35 @@ public class PostViewer extends Stage {
             SystemOpener.openFile(file);
         } catch (IOException e) {
             setStatus(Messages.get("viewer.openError", e.getMessage()), true);
+        }
+    }
+
+    /** Lists the pools the post belongs to (e621); picking one opens it in the reader. */
+    private void updatePoolsButton() {
+        List<Long> ids = post.getPoolIds() == null ? List.of() : post.getPoolIds();
+        boolean show = onOpenPool != null && booru != null && booru.supportsPools() && !ids.isEmpty();
+        poolsButton.setVisible(show);
+        poolsButton.setManaged(show);
+        poolsButton.getItems().clear();
+        if (!show) {
+            return;
+        }
+        int gen = generation;
+        for (long id : ids) {
+            MenuItem item = new MenuItem(Messages.get("pools.numbered", String.valueOf(id)));
+            item.setOnAction(event -> onOpenPool.accept(booru, id));
+            poolsButton.getItems().add(item);
+            CompletableFuture.supplyAsync(() -> context.getRestConfig().clientFor(booru).getPool(id))
+                    .thenAccept(pool -> {
+                        if (pool != null) {
+                            Platform.runLater(() -> {
+                                if (gen == generation) {
+                                    item.setText(pool.displayName() + " (" + pool.postCount() + ")");
+                                }
+                            });
+                        }
+                    })
+                    .exceptionally(error -> null);
         }
     }
 

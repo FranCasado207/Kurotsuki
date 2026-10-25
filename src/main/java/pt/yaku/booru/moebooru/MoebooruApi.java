@@ -22,4 +22,16 @@ public interface MoebooruApi {
                     @QueryParam("name") String name,
                     @QueryParam("order") @DefaultValue("count") String order,
                     @QueryParam("limit") int limit);
+
+    @GET
+    @Path("pool.json")
+    String listPools(@HeaderParam("User-Agent") String userAgent,
+                     @QueryParam("query") String query,
+                     @QueryParam("page") int page);
+
+    /** Returns the pool with all of its posts in reading order; there is no paging. */
+    @GET
+    @Path("pool/show.json")
+    String showPool(@HeaderParam("User-Agent") String userAgent,
+                    @QueryParam("id") long id);
 }

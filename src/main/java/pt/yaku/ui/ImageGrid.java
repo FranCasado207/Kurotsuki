@@ -27,7 +27,6 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
@@ -399,8 +398,7 @@ public class ImageGrid {
         });
         applyQueueMark(tile, library.queue().contains(post.key()));
         applySelectionMark(tile, selected.contains(post.key()));
-        Tooltip.install(tile, new Tooltip("ID " + post.getId() + " - " + post.getRating()
-                + "\n" + post.getTags()));
+        PostHoverCard.install(tile, post);
 
         library.images().load(post.getPreviewUrl(), THUMBNAIL_SIZE).thenAccept(image -> {
             if (image != null) {

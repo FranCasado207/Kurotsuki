@@ -156,4 +156,59 @@ public class LibraryStoreTest {
             assertThrows(SQLException.class, () -> store.addTagToGroup("g", "not-a-favorite"));
         }
     }
+
+    @Test
+    public void testReadingRecordsAreStoredNewestFirstAndUpdatable() throws SQLException {
+        try (LibraryStore store = LibraryStore.open(db)) {
+            assertTrue(store.readingRecords().isEmpty());
+            store.saveReading(new LibraryStore.ReadingRecord("https://e621.test#pool:7", "https://e621.test", 7,
+                    "Comic", "series", 12, 48, false, 1000));
+            store.saveReading(new LibraryStore.ReadingRecord("https://e621.test#pool:8", "https://e621.test", 8,
+                    "Other", null, 3, 10, false, 2000));
+            store.saveReading(new LibraryStore.ReadingRecord("https://e621.test#pool:7", "https://e621.test", 7,
+                    "Comic", "series", 47, 48, true, 3000));
+
+            List<LibraryStore.ReadingRecord> records = store.readingRecords();
+            assertEquals(List.of(7L, 8L), records.stream().map(LibraryStore.ReadingRecord::poolId).toList());
+            assertTrue(records.get(0).finished());
+            assertEquals(47, records.get(0).page());
+            assertNull(records.get(1).category());
+
+            store.deleteReading("https://e621.test#pool:7");
+            assertEquals(1, store.readingRecords().size());
+        }
+    }
+
+    @Test
+    public void testOlderReadingTableIsUpgradedInPlace() throws SQLException {
+        try (Connection c = DriverManager.getConnection("jdbc:sqlite:" + db)) {
+            c.createStatement().executeUpdate("CREATE TABLE reading_progress (pool_key TEXT PRIMARY KEY, "
+                    + "page INTEGER NOT NULL, updated_at INTEGER NOT NULL)");
+            c.createStatement().executeUpdate("INSERT INTO reading_progress VALUES ('old#pool:1', 5, 1)");
+        }
+        try (LibraryStore store = LibraryStore.open(db)) {
+            assertTrue(store.readingRecords().isEmpty(), "rows without a pool name cannot be listed");
+            store.saveReading(new LibraryStore.ReadingRecord("k", "https://x", 1, "n", null, 1, 2, false, 5));
+            assertEquals(1, store.readingRecords().size());
+        }
+    }
+
+    @Test
+    public void testDownloadHistoryAndQueueSurviveReopen() throws Exception {
+        try (LibraryStore store = LibraryStore.open(db)) {
+            store.markDownloaded("a#1", 10);
+            store.markDownloaded("a#2", 20);
+            store.saveQueue(List.of(new LibraryStore.QueueEntry("a#3", "post", "{\"id\":3}"),
+                    new LibraryStore.QueueEntry("a#pool:9", "pool", "{\"id\":9}")));
+            store.saveQueue(List.of(new LibraryStore.QueueEntry("a#4", "post", "{\"id\":4}"),
+                    new LibraryStore.QueueEntry("a#3", "post", "{\"id\":3}")));
+        }
+        try (LibraryStore store = LibraryStore.open(db)) {
+            assertEquals(java.util.Set.of("a#1", "a#2"), store.downloadedKeys());
+            assertEquals(List.of("a#4", "a#3"),
+                    store.queueEntries().stream().map(LibraryStore.QueueEntry::key).toList());
+            store.forgetDownloads();
+            assertTrue(store.downloadedKeys().isEmpty());
+        }
+    }
 }

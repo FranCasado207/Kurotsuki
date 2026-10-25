@@ -158,6 +158,18 @@ public final class LibraryStore implements AutoCloseable {
                         post_key TEXT PRIMARY KEY REFERENCES posts(post_key) ON DELETE CASCADE
                     )""");
             statement.execute("""
+                    CREATE TABLE IF NOT EXISTS reading_progress (
+                        pool_key TEXT PRIMARY KEY,
+                        page INTEGER NOT NULL,
+                        updated_at INTEGER NOT NULL
+                    )""");
+            addColumnIfMissing(statement, "reading_progress", "finished", "INTEGER NOT NULL DEFAULT 0");
+            addColumnIfMissing(statement, "reading_progress", "total", "INTEGER NOT NULL DEFAULT 0");
+            addColumnIfMissing(statement, "reading_progress", "name", "TEXT");
+            addColumnIfMissing(statement, "reading_progress", "booru_base_url", "TEXT");
+            addColumnIfMissing(statement, "reading_progress", "pool_id", "INTEGER NOT NULL DEFAULT 0");
+            addColumnIfMissing(statement, "reading_progress", "category", "TEXT");
+            statement.execute("""
                     CREATE TABLE IF NOT EXISTS tag_groups (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         name TEXT NOT NULL UNIQUE
@@ -180,6 +192,18 @@ public final class LibraryStore implements AutoCloseable {
                         PRIMARY KEY (folder_id, post_key)
                     )""");
             statement.execute("CREATE INDEX IF NOT EXISTS idx_folder_posts_post ON folder_posts(post_key)");
+            statement.execute("""
+                    CREATE TABLE IF NOT EXISTS downloaded (
+                        item_key TEXT PRIMARY KEY,
+                        saved_at INTEGER NOT NULL
+                    )""");
+            statement.execute("""
+                    CREATE TABLE IF NOT EXISTS download_queue (
+                        position INTEGER PRIMARY KEY AUTOINCREMENT,
+                        item_key TEXT NOT NULL UNIQUE,
+                        kind TEXT NOT NULL,
+                        payload TEXT NOT NULL
+                    )""");
         }
     }
 
@@ -236,6 +260,91 @@ public final class LibraryStore implements AutoCloseable {
         execute("DELETE FROM favorite_tags WHERE tag = ?", tag);
     }
 
+
+    /** Where the user is in a pool (0-based page) and whether they finished it. */
+    public record ReadingRecord(String poolKey, String booruBaseUrl, long poolId, String name, String category,
+                                int page, int total, boolean finished, long updatedAt) {
+
+        public ReadingRecord with(int newPage, int newTotal, boolean isFinished, long time) {
+            return new ReadingRecord(poolKey, booruBaseUrl, poolId, name, category, newPage, newTotal, isFinished,
+                    time);
+        }
+    }
+
+    /** Every pool that was opened in the reader, newest first. Rows from older versions without a name are skipped. */
+    public synchronized List<ReadingRecord> readingRecords() throws SQLException {
+        List<ReadingRecord> records = new ArrayList<>();
+        try (PreparedStatement statement = connection.prepareStatement("""
+                SELECT pool_key, booru_base_url, pool_id, name, category, page, total, finished, updated_at
+                FROM reading_progress WHERE pool_id > 0 AND booru_base_url IS NOT NULL
+                ORDER BY updated_at DESC""");
+             ResultSet row = statement.executeQuery()) {
+            while (row.next()) {
+                records.add(new ReadingRecord(row.getString(1), row.getString(2), row.getLong(3), row.getString(4),
+                        row.getString(5), row.getInt(6), row.getInt(7), row.getInt(8) != 0, row.getLong(9)));
+            }
+        }
+        return records;
+    }
+
+    public synchronized void saveReading(ReadingRecord record) throws SQLException {
+        execute("INSERT OR REPLACE INTO reading_progress "
+                        + "(pool_key, booru_base_url, pool_id, name, category, page, total, finished, updated_at) "
+                        + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                record.poolKey(), record.booruBaseUrl(), record.poolId(), record.name(), record.category(),
+                record.page(), record.total(), record.finished() ? 1 : 0, record.updatedAt());
+    }
+
+    public synchronized void deleteReading(String poolKey) throws SQLException {
+        execute("DELETE FROM reading_progress WHERE pool_key = ?", poolKey);
+    }
+
+    /** Keys (post or pool) that were saved to disk before, so they can be skipped next time. */
+    public synchronized Set<String> downloadedKeys() throws SQLException {
+        Set<String> keys = new LinkedHashSet<>();
+        try (PreparedStatement statement = connection.prepareStatement("SELECT item_key FROM downloaded");
+             ResultSet row = statement.executeQuery()) {
+            while (row.next()) {
+                keys.add(row.getString(1));
+            }
+        }
+        return keys;
+    }
+
+    public synchronized void markDownloaded(String key, long time) throws SQLException {
+        execute("INSERT OR REPLACE INTO downloaded (item_key, saved_at) VALUES (?, ?)", key, time);
+    }
+
+    public synchronized void forgetDownloads() throws SQLException {
+        execute("DELETE FROM downloaded");
+    }
+
+    /** An unfinished download, kept across restarts. {@code kind} is "post" or "pool"; payload is JSON. */
+    public record QueueEntry(String key, String kind, String payload) {
+    }
+
+    public synchronized List<QueueEntry> queueEntries() throws SQLException {
+        List<QueueEntry> entries = new ArrayList<>();
+        try (PreparedStatement statement = connection.prepareStatement(
+                "SELECT item_key, kind, payload FROM download_queue ORDER BY position");
+             ResultSet row = statement.executeQuery()) {
+            while (row.next()) {
+                entries.add(new QueueEntry(row.getString(1), row.getString(2), row.getString(3)));
+            }
+        }
+        return entries;
+    }
+
+    /** Replaces the saved queue with the given entries, in order. */
+    public synchronized void saveQueue(List<QueueEntry> entries) throws SQLException {
+        inTransaction(() -> {
+            execute("DELETE FROM download_queue");
+            for (QueueEntry entry : entries) {
+                execute("INSERT OR IGNORE INTO download_queue (item_key, kind, payload) VALUES (?, ?, ?)",
+                        entry.key(), entry.kind(), entry.payload());
+            }
+        });
+    }
 
     /** Group name to its tags, in creation order. Groups without tags are included. */
     public synchronized Map<String, List<String>> tagGroups() throws SQLException {
@@ -469,6 +578,19 @@ public final class LibraryStore implements AutoCloseable {
     }
 
     /** Older versions stored the Hydrus access key inside file/preview URLs; remove it from existing rows. */
+    /** SQLite has no "ADD COLUMN IF NOT EXISTS", so look at the table first. */
+    private static void addColumnIfMissing(Statement statement, String table, String column, String definition)
+            throws SQLException {
+        try (ResultSet columns = statement.executeQuery("PRAGMA table_info(" + table + ")")) {
+            while (columns.next()) {
+                if (column.equalsIgnoreCase(columns.getString("name"))) {
+                    return;
+                }
+            }
+        }
+        statement.execute("ALTER TABLE " + table + " ADD COLUMN " + column + " " + definition);
+    }
+
     private void stripSecrets() throws SQLException {
         if (metaValue(SECRETS_STRIPPED_FLAG) != null) {
             return;

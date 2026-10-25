@@ -18,6 +18,9 @@ import javafx.scene.input.KeyCombination;
 import javafx.stage.Stage;
 import pt.yaku.context.ApplicationContext;
 import pt.yaku.i18n.Messages;
+import pt.yaku.log.AppLog;
+import pt.yaku.log.LogArchive;
+import pt.yaku.log.SystemInfo;
 import pt.yaku.user.config.AppPaths;
 
 public final class MainMenuBar {
@@ -26,7 +29,9 @@ public final class MainMenuBar {
     }
 
     public static MenuBar create(Stage owner, ApplicationContext context, Runnable onBoorusChanged,
-                                 Runnable onFind, Runnable onSelectAll, List<MenuItem> windowItems) {
+                                 Runnable onFind, Runnable onSelectAll, Runnable onBulkDownload,
+                                 Runnable onForgetDownloads,
+                                 List<MenuItem> windowItems) {
         MenuItem exit = new MenuItem(Messages.get("menu.exit"));
         exit.setAccelerator(new KeyCodeCombination(KeyCode.Q, KeyCombination.CONTROL_DOWN));
         exit.setOnAction(event -> Platform.exit());
@@ -47,7 +52,7 @@ public final class MainMenuBar {
 
         MenuItem settings = new MenuItem(Messages.get("menu.settings"));
         settings.setOnAction(event -> {
-            new SettingsDialog(owner, context).showAndWait();
+            new SettingsDialog(owner, context, onForgetDownloads).showAndWait();
             onBoorusChanged.run();
         });
 
@@ -55,15 +60,21 @@ public final class MainMenuBar {
         reload.setAccelerator(new KeyCodeCombination(KeyCode.F5));
         reload.setOnAction(event -> onBoorusChanged.run());
 
+        MenuItem bulkDownload = new MenuItem(Messages.get("menu.downloadResults"));
+        bulkDownload.setOnAction(event -> onBulkDownload.run());
+
         MenuItem openDownloads = new MenuItem(Messages.get("menu.openDownloads"));
         openDownloads.setOnAction(event -> openDownloadsFolder(owner, context));
+
+        MenuItem exportLogs = new MenuItem(Messages.get("menu.exportLogs"));
+        exportLogs.setOnAction(event -> exportLogs(owner, context));
 
         MenuItem openData = new MenuItem(Messages.get("menu.openData"));
         openData.setOnAction(event -> openFolder(owner, AppPaths.get().data()));
 
         Menu tools = new Menu(Messages.get("menu.tools"));
         tools.getItems().addAll(settings, new SeparatorMenuItem(), reload,
-                new SeparatorMenuItem(), openDownloads, openData);
+                new SeparatorMenuItem(), bulkDownload, openDownloads, openData, exportLogs);
 
         Menu window = new Menu(Messages.get("menu.window"));
         window.getItems().addAll(windowItems);
@@ -75,6 +86,22 @@ public final class MainMenuBar {
         help.getItems().add(about);
 
         return new MenuBar(file, edit, tools, window, help);
+    }
+
+    private static void exportLogs(Stage owner, ApplicationContext context) {
+        try {
+            Path archive = LogArchive.write(AppLog.directory(), AppPaths.get().data().resolve(LogArchive.FILE_NAME),
+                    SystemInfo.describe(context.getUserConfig().getBooruConfigurations()));
+            Alert alert = Styles.alert(Alert.AlertType.INFORMATION,
+                    Messages.get("menu.logsExported", archive.toString()));
+            alert.initOwner(owner);
+            alert.showAndWait();
+            openFolder(owner, archive.getParent());
+        } catch (IOException e) {
+            Alert alert = Styles.alert(Alert.AlertType.ERROR, Messages.get("menu.openError", e.getMessage()));
+            alert.initOwner(owner);
+            alert.showAndWait();
+        }
     }
 
     private static void openDownloadsFolder(Stage owner, ApplicationContext context) {

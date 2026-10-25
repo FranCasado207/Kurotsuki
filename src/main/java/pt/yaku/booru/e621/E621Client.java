@@ -10,10 +10,16 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import pt.yaku.booru.BooruClient;
 import pt.yaku.booru.BooruHttp;
+import pt.yaku.booru.Pool;
+import pt.yaku.booru.PoolOrder;
+import pt.yaku.booru.Pools;
 import pt.yaku.booru.Post;
 import pt.yaku.booru.TagCategory;
 
 public class E621Client implements BooruClient {
+
+    private static final int POOL_PAGE_LIMIT = 320;
+    private static final int MAX_POOL_PAGES = 30;
 
     private final E621Api api;
     private final String baseUrl;
@@ -52,6 +58,35 @@ public class E621Client implements BooruClient {
         return names;
     }
 
+    @Override
+    public boolean supportsPools() {
+        return true;
+    }
+
+    @Override
+    public List<Pool> searchPools(String nameContains, String category, PoolOrder order, int page, int limit) {
+        String matches = nameContains == null || nameContains.isBlank() ? null
+                : "*" + nameContains.trim().replace(' ', '_') + "*";
+        return Pools.parseList(api.listPools(BooruHttp.USER_AGENT, authorization, matches, category,
+                (order == null ? PoolOrder.UPDATED : order).getApiValue(), page + 1, limit), baseUrl);
+    }
+
+    @Override
+    public Pool getPool(long id) {
+        return Pools.parseOne(api.getPool(BooruHttp.USER_AGENT, authorization, id), baseUrl);
+    }
+
+    @Override
+    public List<Post> poolPosts(Pool pool) {
+        // e621 returns at most POOL_PAGE_LIMIT posts per request; the cap also stops a misbehaving server.
+        return Pools.orderedFromSearch(this, pool, POOL_PAGE_LIMIT, MAX_POOL_PAGES);
+    }
+
+    @Override
+    public Map<Long, Post> poolCovers(List<Pool> pools) {
+        return Pools.coversFromSearch(this, pools);
+    }
+
     private Post toPost(JsonObject json) {
         Post post = new Post();
         post.setId(json.get("id").getAsLong());
@@ -73,6 +108,11 @@ public class E621Client implements BooruClient {
                 names.append(tag.getAsString()).append(' ');
             }
             post.addTagCategories(names.toString(), TagCategory.fromName(category.getKey()));
+        }
+        if (json.has("pools") && json.get("pools").isJsonArray()) {
+            for (JsonElement id : json.getAsJsonArray("pools")) {
+                post.getPoolIds().add(id.getAsLong());
+            }
         }
         post.setBooruBaseUrl(baseUrl);
         return post;

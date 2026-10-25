@@ -12,6 +12,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import pt.yaku.booru.BooruClient;
 import pt.yaku.booru.BooruHttp;
+import pt.yaku.booru.Pool;
+import pt.yaku.booru.PoolOrder;
 import pt.yaku.booru.Post;
 import pt.yaku.booru.TagCategory;
 
@@ -59,6 +61,71 @@ public class MoebooruClient implements BooruClient {
             }
         }
         return categories;
+    }
+
+    @Override
+    public boolean supportsPools() {
+        return true;
+    }
+
+    /** Moebooru has no categories or sort orders for pools, so those arguments are ignored. */
+    @Override
+    public boolean supportsPoolFilters() {
+        return false;
+    }
+
+    /** The server pages pools in a fixed size that differs between sites, so only an empty page is the end. */
+    @Override
+    public int poolPageSize(int requested) {
+        return 1;
+    }
+
+    @Override
+    public List<Pool> searchPools(String nameContains, String category, PoolOrder order, int page, int limit) {
+        String query = nameContains == null || nameContains.isBlank() ? null : nameContains.trim();
+        List<Pool> pools = new ArrayList<>();
+        for (JsonElement element : array(api.listPools(BooruHttp.USER_AGENT, query, page + 1))) {
+            pools.add(toPool(element.getAsJsonObject(), List.of()));
+        }
+        return pools;
+    }
+
+    @Override
+    public Pool getPool(long id) {
+        return showPool(id).pool();
+    }
+
+    @Override
+    public List<Post> poolPosts(Pool pool) {
+        return showPool(pool.id()).posts();
+    }
+
+    private record Shown(Pool pool, List<Post> posts) {
+    }
+
+    private Shown showPool(long id) {
+        String body = api.showPool(BooruHttp.USER_AGENT, id);
+        if (body == null || body.isBlank()) {
+            return new Shown(null, List.of());
+        }
+        JsonObject json = JsonParser.parseString(body).getAsJsonObject();
+        List<Post> posts = new ArrayList<>();
+        List<Long> ids = new ArrayList<>();
+        if (json.has("posts") && json.get("posts").isJsonArray()) {
+            for (JsonElement element : json.getAsJsonArray("posts")) {
+                Post post = toPost(element.getAsJsonObject());
+                posts.add(post);
+                ids.add(post.getId());
+            }
+        }
+        return new Shown(toPool(json, ids), posts);
+    }
+
+    private Pool toPool(JsonObject json, List<Long> postIds) {
+        int count = json.has("post_count") && !json.get("post_count").isJsonNull()
+                ? json.get("post_count").getAsInt() : postIds.size();
+        return new Pool(json.get("id").getAsLong(), stringOf(json, "name"), stringOf(json, "description"), null,
+                count, List.copyOf(postIds), baseUrl, stringOf(json, "created_at"), stringOf(json, "updated_at"));
     }
 
     private static TagCategory categoryOf(int type) {

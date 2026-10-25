@@ -35,4 +35,24 @@ public class BooruConfigurationTest {
         assertFalse(booru("https://booru.example", "key").sendsCredentialsInClear());
         assertFalse(booru("http://booru.example", null).sendsCredentialsInClear());
     }
+
+    @Test
+    public void testPoolsAreAvailableOnTheRightBoorus() {
+        assertTrue(template(pt.yaku.booru.BooruTemplate.E621).supportsPools());
+        assertTrue(template(pt.yaku.booru.BooruTemplate.DANBOORU).supportsPools());
+        assertTrue(template(pt.yaku.booru.BooruTemplate.YANDERE).supportsPools());
+        assertFalse(template(pt.yaku.booru.BooruTemplate.GELBOORU).supportsPools());
+        assertFalse(template(pt.yaku.booru.BooruTemplate.HYDRUS).supportsPools());
+
+        BooruConfiguration shimmie = new BooruConfiguration();
+        shimmie.setEngine(pt.yaku.booru.BooruEngine.MOEBOORU_SHIMMIE);
+        shimmie.setFlavor(pt.yaku.booru.BooruFlavor.SHIMMIE);
+        assertFalse(shimmie.supportsPools(), "Shimmie has no pools API");
+    }
+
+    private static BooruConfiguration template(pt.yaku.booru.BooruTemplate template) {
+        BooruConfiguration booru = new BooruConfiguration();
+        booru.setTemplate(template);
+        return booru;
+    }
 }

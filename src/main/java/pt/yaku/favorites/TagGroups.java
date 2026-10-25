@@ -9,6 +9,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import lombok.Getter;
+import pt.yaku.booru.Post;
 import pt.yaku.i18n.Messages;
 import pt.yaku.storage.LibraryStore;
 import pt.yaku.storage.StoreWrites;
@@ -46,6 +47,26 @@ public class TagGroups {
                 }
             }
         });
+    }
+
+    /** The name of the first group (in list order) that holds any of the tags, or an empty string. */
+    public String groupFor(Post post) {
+        return firstGroup(groups, post.getTags());
+    }
+
+    static String firstGroup(List<TagGroup> groups, String tagString) {
+        if (tagString == null || tagString.isBlank()) {
+            return "";
+        }
+        java.util.Set<String> tags = new java.util.HashSet<>(java.util.Arrays.asList(tagString.trim().split("\\s+")));
+        for (TagGroup group : groups) {
+            for (String tag : group.getTags()) {
+                if (tags.contains(tag)) {
+                    return group.getName();
+                }
+            }
+        }
+        return "";
     }
 
     public boolean exists(String name) {

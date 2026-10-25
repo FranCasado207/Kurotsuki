@@ -5,6 +5,7 @@ import java.util.List;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.QueryParam;
 
 @Path("/")
@@ -27,4 +28,22 @@ public interface DanbooruApi {
                                @QueryParam("search[name_matches]") String nameMatches,
                                @QueryParam("search[order]") String order,
                                @QueryParam("limit") int limit);
+
+    @GET
+    @Path("pools.json")
+    String listPools(@HeaderParam("User-Agent") String userAgent,
+                     @QueryParam("login") String login,
+                     @QueryParam("api_key") String apiKey,
+                     @QueryParam("search[name_matches]") String nameMatches,
+                     @QueryParam("search[category]") String category,
+                     @QueryParam("search[order]") String order,
+                     @QueryParam("page") int page,
+                     @QueryParam("limit") int limit);
+
+    @GET
+    @Path("pools/{id}.json")
+    String getPool(@HeaderParam("User-Agent") String userAgent,
+                   @QueryParam("login") String login,
+                   @QueryParam("api_key") String apiKey,
+                   @PathParam("id") long id);
 }
