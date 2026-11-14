@@ -1,0 +1,109 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Kurotsuki.App.ViewModels"
+        xmlns:svc="using:Kurotsuki.App.Services"
+        xmlns:v="using:Kurotsuki.App.Views"
+        x:Class="Kurotsuki.App.Views.ViewerWindow"
+        x:DataType="vm:ViewerViewModel"
+        Title="{Binding Title}" Width="1200" Height="820" MinWidth="640" MinHeight="420"
+        WindowStartupLocation="CenterOwner">
+  <DockPanel>
+    <!-- Toolbar -->
+    <Border DockPanel.Dock="Top" Classes="panel" BorderThickness="0,0,0,1" Padding="10,6">
+      <WrapPanel>
+        <Button Classes="icon" Command="{Binding PreviousCommand}" IsEnabled="{Binding CanGoBack}" ToolTip.Tip="{svc:T 'next.prev'}" Margin="0,0,2,0"><Path Classes="ico" Data="{StaticResource IconPrev}" /></Button>
+        <Button Classes="icon" Command="{Binding NextCommand}" IsEnabled="{Binding CanGoForward}" ToolTip.Tip="{svc:T 'next.next'}" Margin="0,0,8,0"><Path Classes="ico" Data="{StaticResource IconNext}" /></Button>
+        <TextBlock Text="{Binding Position}" VerticalAlignment="Center" Margin="0,0,12,0" Classes="muted" />
+        <Button Classes="flat" Content="{Binding FavoriteLabel}" Command="{Binding ToggleFavoriteCommand}" Margin="0,0,2,0" />
+        <Button Classes="accent" Content="{svc:T 'common.download'}" Command="{Binding DownloadCommand}" Margin="0,0,6,0" />
+        <Button Classes="flat" Content="{svc:T 'viewer.openBrowser'}" Command="{Binding OpenBrowserCommand}" Margin="0,0,6,0" />
+        <Button x:Name="FolderButton" Classes="flat" Content="{svc:T 'grid.addToFolder'}" Click="OnFolderClick" Margin="0,0,6,0" />
+        <Button x:Name="MoreButton" Classes="flat" Content="{svc:T 'next.moreActions'}" Click="OnMoreActionsClick" Margin="0,0,6,0" />
+        <Button x:Name="PoolsButton" Classes="flat" Content="{Binding PoolsLabel}" Click="OnPoolsClick" IsVisible="{Binding HasPoolsFeature}" Margin="0,0,12,0" />
+        <Button Classes="icon" Command="{Binding ZoomOutCommand}"><Path Classes="ico" Data="{StaticResource IconMinus}" /></Button>
+        <Button Classes="flat" Content="{Binding ZoomText}" Command="{Binding ActualSizeCommand}" MinWidth="64" HorizontalContentAlignment="Center" ToolTip.Tip="{svc:T 'next.actualSize'}" Margin="0,0,4,0" />
+        <Button Classes="icon" Command="{Binding ZoomInCommand}"><Path Classes="ico" Data="{StaticResource IconPlus}" /></Button>
+        <Button Classes="icon" Command="{Binding FitCommand}" ToolTip.Tip="{svc:T 'next.fit'}"><Path Classes="ico" Data="{StaticResource IconFit}" /></Button>
+      </WrapPanel>
+    </Border>
+
+    <!-- Status -->
+    <Border DockPanel.Dock="Bottom" Classes="panel" BorderThickness="0,1,0,0" Padding="10,4">
+      <TextBlock Text="{Binding Status}" TextTrimming="CharacterEllipsis" x:Name="StatusText" Classes="muted" />
+    </Border>
+
+    <!-- Tags -->
+    <Border DockPanel.Dock="Right" Classes="panel" BorderThickness="1,0,0,0" Width="280">
+      <DockPanel Margin="10">
+        <TextBlock DockPanel.Dock="Top" Classes="heading" Text="{svc:T 'tagPanel.title'}" Margin="4,0,0,6" />
+        <TextBlock DockPanel.Dock="Top" Classes="muted" Text="{svc:T 'next.tagsPanelEmpty'}" IsVisible="{Binding !Tags.Count}" Margin="4" />
+        <ScrollViewer>
+          <ItemsControl ItemsSource="{Binding Tags}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:TagItemViewModel">
+                <Button Classes="flat" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="8,3" Click="OnTagClick"
+                        ContextRequested="OnTagContextRequested">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <Path Classes="ico fill" Width="12" Height="12" IsVisible="{Binding IsFavorite}" Data="{StaticResource IconStar}" />
+                    <TextBlock Text="{Binding Display}" Foreground="{Binding Brush}" TextWrapping="Wrap" />
+                  </StackPanel>
+                </Button>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+      </DockPanel>
+    </Border>
+
+    <!-- Image -->
+    <Panel Background="{DynamicResource KtBackgroundBrush}">
+      <!-- Video: libvlc renders into a bitmap (see VideoPlayback); controls sit under the picture. -->
+      <DockPanel IsVisible="{Binding HasVideo}">
+        <Border DockPanel.Dock="Bottom" Classes="panel" BorderThickness="0,1,0,0" Padding="8,6" DataContext="{Binding Video}"
+                x:DataType="vm:VideoViewModel">
+          <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,90,*,Auto,Auto" ColumnSpacing="6">
+            <Button Classes="icon" Command="{Binding TogglePauseCommand}">
+              <Panel>
+                <Path Classes="ico" Data="{StaticResource IconPause}" IsVisible="{Binding IsPlaying}" />
+                <Path Classes="ico" Data="{StaticResource IconPlay}" IsVisible="{Binding !IsPlaying}" />
+              </Panel>
+            </Button>
+            <Button Grid.Column="1" Classes="flat" Content="{svc:T 'next.back10'}" Command="{Binding BackCommand}" />
+            <Button Grid.Column="2" Classes="flat" Content="{svc:T 'next.forward10'}" Command="{Binding ForwardCommand}" />
+            <Button Grid.Column="3" Classes="icon" Command="{Binding ToggleMuteCommand}">
+              <Panel>
+                <Path Classes="ico" Data="{StaticResource IconMute}" IsVisible="{Binding Muted}" />
+                <Path Classes="ico" Data="{StaticResource IconVolume}" IsVisible="{Binding !Muted}" />
+              </Panel>
+            </Button>
+            <Slider Grid.Column="4" Minimum="0" Maximum="100" Value="{Binding Volume}" VerticalAlignment="Center"
+                    ToolTip.Tip="{svc:T 'next.volume'}" />
+            <Slider Grid.Column="5" Minimum="0" Maximum="{Binding LengthMs}" Value="{Binding SeekValue}" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="6" Text="{Binding TimeText}" VerticalAlignment="Center" Classes="muted" />
+            <Button Grid.Column="7" Classes="icon" Click="OnFullscreenClick" ToolTip.Tip="{svc:T 'next.fullscreen'}">
+              <Path Classes="ico" Data="{StaticResource IconFullscreen}" />
+            </Button>
+          </Grid>
+        </Border>
+        <Image x:Name="VideoImage" Source="{Binding Video.Frame}" Stretch="Uniform" DoubleTapped="OnVideoDoubleTapped" />
+      </DockPanel>
+      <ScrollViewer x:Name="ImageScroll" IsVisible="{Binding !HasVideo}" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled"
+                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+        <Image Source="{Binding Image}" Stretch="{Binding ImageStretch}" Width="{Binding DisplayWidth}"
+               Height="{Binding DisplayHeight}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+      </ScrollViewer>
+      <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10" IsVisible="{Binding IsLoading}">
+        <ProgressBar IsIndeterminate="True" Width="160" />
+        <TextBlock Text="{svc:T 'viewer.loading'}" HorizontalAlignment="Center" />
+      </StackPanel>
+      <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10" MaxWidth="480"
+                  IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <TextBlock Text="{Binding Error}" TextWrapping="Wrap" TextAlignment="Center" />
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
+          <Button Content="{svc:T 'viewer.retry'}" Command="{Binding RetryCommand}" />
+          <Button Content="{svc:T 'viewer.openExternal'}" Command="{Binding OpenExternalCommand}" IsVisible="{Binding CanOpenExternally}" />
+        </StackPanel>
+      </StackPanel>
+    </Panel>
+  </DockPanel>
+</Window>

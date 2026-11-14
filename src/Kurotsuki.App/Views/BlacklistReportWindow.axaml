@@ -1,0 +1,55 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Kurotsuki.App.ViewModels"
+        xmlns:svc="using:Kurotsuki.App.Services"
+        x:Class="Kurotsuki.App.Views.BlacklistReportWindow"
+        x:DataType="vm:BlacklistReportViewModel"
+        Title="{svc:T 'next.reportTitle'}" Width="760" Height="720" MinWidth="520" MinHeight="400"
+        WindowStartupLocation="CenterOwner">
+  <DockPanel Margin="20">
+    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,14,0,0">
+      <Button Content="{svc:T 'next.close'}" Click="OnClose" />
+      <Button Classes="accent" Content="{svc:T 'next.showAll'}" Command="{Binding ShowAllCommand}" IsEnabled="{Binding !IsEmpty}" />
+    </StackPanel>
+    <StackPanel DockPanel.Dock="Top" Spacing="10" Margin="0,0,0,12">
+      <TextBlock Classes="title" Text="{svc:T 'next.reportTitle'}" />
+      <TextBlock Classes="muted" TextWrapping="Wrap" Text="{Binding Summary}" />
+      <ItemsControl ItemsSource="{Binding Tags}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:TagCount">
+            <Border Background="{DynamicResource KtSurfaceRaisedBrush}" BorderBrush="{DynamicResource KtBorderBrush}"
+                    BorderThickness="1" CornerRadius="12" Padding="10,3" Margin="0,0,6,6">
+              <TextBlock Text="{Binding Label}" FontSize="12" />
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </StackPanel>
+    <ListBox Classes="rows" ItemsSource="{Binding Items}" Background="Transparent" SelectionMode="Single"
+             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+      <ListBox.ItemTemplate>
+        <DataTemplate x:DataType="vm:HiddenItemViewModel">
+          <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14" Margin="0,4">
+            <Border Classes="tile" Width="96" Height="96" BorderThickness="0" CornerRadius="8">
+              <Image Source="{Binding Thumbnail}" Stretch="UniformToFill" />
+            </Border>
+            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3">
+              <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
+              <TextBlock Classes="error" Text="{Binding BlockedBy}" TextWrapping="Wrap" />
+              <TextBlock Classes="muted" FontSize="12" Text="{Binding OtherTags}" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+            <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="6">
+              <Button Classes="accent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                      Content="{svc:T 'next.showAnyway'}" Command="{Binding ShowCommand}" />
+              <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                      Content="{svc:T 'folders.open'}" Command="{Binding OpenCommand}" />
+            </StackPanel>
+          </Grid>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+  </DockPanel>
+</Window>

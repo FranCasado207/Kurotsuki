@@ -1,0 +1,65 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Kurotsuki.App.ViewModels"
+             xmlns:svc="using:Kurotsuki.App.Services"
+             xmlns:cfg="using:Kurotsuki.Core.Config"
+             x:Class="Kurotsuki.App.Views.PoolsTabView"
+             x:DataType="vm:PoolsTabViewModel">
+  <DockPanel>
+    <Border DockPanel.Dock="Top" Classes="panel" BorderThickness="0,0,0,1" Padding="14,10">
+      <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="8">
+        <ComboBox Width="200" ItemsSource="{Binding Boorus}" SelectedItem="{Binding SelectedBooru}">
+          <ComboBox.ItemTemplate>
+            <DataTemplate x:DataType="cfg:BooruConfiguration"><TextBlock Text="{Binding DisplayName}" /></DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+        <TextBox Grid.Column="1" Text="{Binding Query}" PlaceholderText="{svc:T 'pools.searchPrompt'}">
+          <TextBox.KeyBindings><KeyBinding Gesture="Enter" Command="{Binding SearchCommand}" /></TextBox.KeyBindings>
+        </TextBox>
+        <ComboBox Grid.Column="2" ItemsSource="{Binding Categories}" SelectedItem="{Binding Category}"
+                  IsVisible="{Binding FiltersVisible}" />
+        <ComboBox Grid.Column="3" ItemsSource="{Binding Orders}" SelectedItem="{Binding Order}"
+                  IsVisible="{Binding FiltersVisible}" />
+        <Button Grid.Column="4" Classes="accent" Content="{svc:T 'common.search'}" Command="{Binding SearchCommand}" />
+      </Grid>
+    </Border>
+    <Border DockPanel.Dock="Bottom" Padding="10,4">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Classes="muted" Text="{Binding Status}" />
+        <ProgressBar Grid.Column="1" IsIndeterminate="True" Width="80" IsVisible="{Binding IsLoading}" />
+      </Grid>
+    </Border>
+    <ListBox x:Name="List" Classes="rows" Margin="6,4" ItemsSource="{Binding Pools}" Background="Transparent" DoubleTapped="OnDoubleTapped"
+             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+      <ListBox.ItemTemplate>
+        <DataTemplate x:DataType="vm:PoolItemViewModel">
+          <Grid ColumnDefinitions="64,*,Auto" Margin="2" ColumnSpacing="10">
+            <Border Classes="tile" Width="64" Height="84" BorderThickness="0" CornerRadius="8">
+              <Image Source="{Binding Cover}" Stretch="UniformToFill" />
+            </Border>
+            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+              <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+              <TextBlock Classes="muted" FontSize="12" Text="{Binding Details}" />
+              <TextBlock FontSize="12" Foreground="{DynamicResource KtAccentBrush}" Text="{Binding ProgressText}"
+                         IsVisible="{Binding HasProgress}" />
+            </StackPanel>
+            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+              <Button Classes="accent" Content="{svc:T 'pools.read'}" Command="{Binding ReadCommand}" />
+              <Button Classes="flat" Content="{svc:T 'pools.browse'}" Command="{Binding OpenCommand}" />
+              <Button Classes="icon"><Path Classes="ico" StrokeThickness="1.6" Data="{StaticResource IconMore}" />
+                <Button.Flyout>
+                  <MenuFlyout>
+                    <MenuItem Header="{svc:T 'pools.readFromStart'}" Command="{Binding ReadFromStartCommand}" />
+                    <MenuItem Header="{svc:T 'pools.download'}" Command="{Binding DownloadCommand}" />
+                    <MenuItem Header="{svc:T 'pools.openSite'}" Command="{Binding OpenSiteCommand}" />
+                    <MenuItem Header="{svc:T 'reading.markFinished'}" Command="{Binding MarkFinishedCommand}" />
+                  </MenuFlyout>
+                </Button.Flyout>
+              </Button>
+            </StackPanel>
+          </Grid>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+  </DockPanel>
+</UserControl>

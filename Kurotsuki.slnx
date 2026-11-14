@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Kurotsuki.App/Kurotsuki.App.csproj" />
+    <Project Path="src/Kurotsuki.Core/Kurotsuki.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Kurotsuki.App.Tests/Kurotsuki.App.Tests.csproj" />
+    <Project Path="tests/Kurotsuki.Core.Tests/Kurotsuki.Core.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,25 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Kurotsuki.App.ViewModels"
+        xmlns:svc="using:Kurotsuki.App.Services"
+        x:Class="Kurotsuki.App.Views.BulkDownloadWindow"
+        x:DataType="vm:BulkDownloadViewModel"
+        Title="{svc:T 'bulk.title'}" Width="480" SizeToContent="Height" CanResize="False"
+        WindowStartupLocation="CenterOwner">
+  <StackPanel Margin="24" Spacing="14">
+    <TextBlock Text="{Binding Header}" TextWrapping="Wrap" FontWeight="SemiBold" />
+    <StackPanel Orientation="Horizontal" Spacing="8">
+      <TextBlock Text="{svc:T 'bulk.from'}" VerticalAlignment="Center" />
+      <NumericUpDown Minimum="1" Maximum="100000" Increment="1" FormatString="0" Value="{Binding FromPage}" Width="120" />
+      <TextBlock Text="{svc:T 'bulk.to'}" VerticalAlignment="Center" />
+      <NumericUpDown Minimum="1" Maximum="100000" Increment="1" FormatString="0" Value="{Binding ToPage}" Width="120" />
+    </StackPanel>
+    <TextBlock Classes="muted" FontSize="12" TextWrapping="Wrap" Text="{Binding Hint}" />
+    <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsRunning}" />
+    <TextBlock Text="{Binding Status}" TextWrapping="Wrap" />
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+      <Button Content="{svc:T 'next.close'}" Click="OnClose" />
+      <Button Classes="accent" Content="{svc:T 'bulk.start'}" Command="{Binding StartCommand}" />
+    </StackPanel>
+  </StackPanel>
+</Window>

@@ -1,0 +1,21 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:svc="using:Kurotsuki.App.Services"
+        xmlns:v="using:Kurotsuki.App.Views"
+        x:Class="Kurotsuki.App.Views.CommandPaletteWindow"
+        Width="560" Height="440" CanResize="False" ShowInTaskbar="False" WindowDecorations="BorderOnly"
+        WindowStartupLocation="CenterOwner" Background="{DynamicResource KtSurfaceBrush}">
+  <DockPanel Margin="14">
+    <TextBox x:Name="Query" DockPanel.Dock="Top" PlaceholderText="{svc:T 'next.paletteHint'}" Margin="0,0,0,10" />
+    <ListBox x:Name="Results" Classes="rows" Background="Transparent">
+      <ListBox.ItemTemplate>
+        <DataTemplate x:DataType="v:PaletteEntry">
+          <Grid ColumnDefinitions="*,Auto" Margin="2,3">
+            <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
+            <TextBlock Grid.Column="1" Classes="muted" FontSize="12" Text="{Binding Group}" />
+          </Grid>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+  </DockPanel>
+</Window>

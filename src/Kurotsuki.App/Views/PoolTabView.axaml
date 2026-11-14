@@ -1,0 +1,24 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Kurotsuki.App.ViewModels"
+             xmlns:v="using:Kurotsuki.App.Views"
+             xmlns:svc="using:Kurotsuki.App.Services"
+             x:Class="Kurotsuki.App.Views.PoolTabView"
+             x:DataType="vm:PoolTabViewModel">
+  <DockPanel>
+    <Border DockPanel.Dock="Top" Padding="14,10" Classes="panel" BorderThickness="0,0,0,1">
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel>
+          <TextBlock Classes="title" Text="{Binding Pool.DisplayName}" TextTrimming="CharacterEllipsis" />
+          <TextBlock Classes="muted" Text="{Binding Pool.Description}" TextTrimming="CharacterEllipsis" MaxLines="1" />
+        </StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+          <Button Classes="accent" Content="{svc:T 'pools.read'}" Command="{Binding ReadCommand}" />
+          <Button Content="{svc:T 'pools.readFromStart'}" Command="{Binding ReadFromStartCommand}" />
+          <Button Content="{svc:T 'pools.download'}" Command="{Binding DownloadCommand}" />
+        </StackPanel>
+      </Grid>
+    </Border>
+    <v:PostGridView />
+  </DockPanel>
+</UserControl>

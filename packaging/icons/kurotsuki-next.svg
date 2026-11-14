@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2b3a55"/>
+      <stop offset="1" stop-color="#3a7bd5"/>
+    </linearGradient>
+    <radialGradient id="moon" cx="0.4" cy="0.35" r="0.75">
+      <stop offset="0" stop-color="#fffbe6"/>
+      <stop offset="1" stop-color="#ffe9a0"/>
+    </radialGradient>
+  </defs>
+  <rect x="16" y="16" width="480" height="480" rx="112" fill="url(#bg)"/>
+  <circle cx="256" cy="268" r="168" fill="#000" opacity="0.18"/>
+  <circle cx="256" cy="262" r="168" fill="url(#moon)" stroke="#f6d365" stroke-width="6"/>
+  <ellipse cx="205" cy="258" rx="17" ry="22" fill="#2b3a55"/>
+  <ellipse cx="307" cy="258" rx="17" ry="22" fill="#2b3a55"/>
+  <circle cx="211" cy="249" r="6" fill="#ffffff"/>
+  <circle cx="313" cy="249" r="6" fill="#ffffff"/>
+  <ellipse cx="178" cy="304" rx="20" ry="12" fill="#ff8fa3" opacity="0.7"/>
+  <ellipse cx="334" cy="304" rx="20" ry="12" fill="#ff8fa3" opacity="0.7"/>
+  <path d="M 238 300 q 9 11 18 0 q 9 11 18 0" fill="none" stroke="#2b3a55" stroke-width="7" stroke-linecap="round"/>
+  <path d="M0,-22 Q4,-4 22,0 Q4,4 0,22 Q-4,4 -22,0 Q-4,-4 0,-22 Z" transform="translate(120,128)" fill="#ffffff" opacity="0.9"/>
+  <path d="M0,-16 Q3,-3 16,0 Q3,3 0,16 Q-3,3 -16,0 Q-3,-3 0,-16 Z" transform="translate(392,118)" fill="#ffffff" opacity="0.8"/>
+  <path d="M0,-14 Q3,-3 14,0 Q3,3 0,14 Q-3,3 -14,0 Q-3,-3 0,-14 Z" transform="translate(396,398)" fill="#fff3c4" opacity="0.9"/>
+</svg>

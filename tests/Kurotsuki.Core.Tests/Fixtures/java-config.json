@@ -1,0 +1,29 @@
+{
+  "booruConfigurations": [
+    { "template": "GELBOORU", "apiKey": "k", "userId": "42" },
+    { "template": "YANDERE" },
+    { "engine": "MOEBOORU_SHIMMIE", "flavor": "SHIMMIE", "customBaseUrl": "https://shimmie.example" },
+    { "engine": "SZURUBOORU", "customBaseUrl": "https://szuru.example", "userId": "u", "apiKey": "t" },
+    { "booruType": "DANBOORU", "login": "me", "apiKey": "legacy" },
+    { "engine": "NOT_A_THING", "customBaseUrl": "https://x.example" }
+  ],
+  "downloadFolder": "/tmp/dl",
+  "language": "pt",
+  "panelDocks": { "TAGS": "LEFT" },
+  "panelSizes": { "TAGS": 300.0 },
+  "favoriteTags": ["a_tag"],
+  "favoritePosts": [
+    { "id": 7, "score": 3, "width": 10, "height": 20, "image": "abc.jpg", "rating": "general",
+      "tags": "a b", "booruBaseUrl": "https://gelbooru.com", "poolIds": [1, 2],
+      "tagCategories": { "a": "ARTIST", "b": "GENERAL" } }
+  ],
+  "postFolders": [ { "name": "f", "posts": [] } ],
+  "blacklistedTags": ["x"],
+  "readerMode": "PAGED",
+  "readerRightToLeft": true,
+  "readerCacheMegabytes": 512,
+  "downloadTemplate": "%booru%/%id%.%ext%",
+  "downloadSidecar": "json",
+  "redownloadKnown": true,
+  "someFutureField": { "n": 1 }
+}

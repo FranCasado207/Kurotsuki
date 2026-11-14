@@ -1,0 +1,117 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Kurotsuki.App.ViewModels"
+             xmlns:svc="using:Kurotsuki.App.Services"
+             x:Class="Kurotsuki.App.Views.PostGridView"
+             x:DataType="vm:PostGridViewModel">
+  <DockPanel>
+    <Border DockPanel.Dock="Top" Padding="14,8,14,0" IsVisible="{Binding FilterVisible}">
+      <TextBox x:Name="FilterBox" Text="{Binding FilterText}" PlaceholderText="{svc:T 'next.filterHint'}" />
+    </Border>
+    <Border DockPanel.Dock="Bottom" Padding="14,8">
+      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+        <TextBlock Classes="muted" Text="{Binding Status}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+          <ProgressBar IsIndeterminate="True" Width="80" IsVisible="{Binding IsLoading}" />
+          <Button Classes="flat" Content="{svc:T 'next.reviewHidden'}" Command="{Binding ReviewHiddenCommand}"
+                  IsVisible="{Binding HasHidden}" />
+          <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" ToolTip.Tip="{svc:T 'next.ratingFilter'}">
+            <ToggleButton Classes="chip" IsChecked="{Binding ShowSafe}" Content="S"
+                          ToolTip.Tip="{svc:T 'hover.ratingSafe'}" />
+            <ToggleButton Classes="chip" IsChecked="{Binding ShowQuestionable}" Content="Q"
+                          ToolTip.Tip="{svc:T 'hover.ratingQuestionable'}" />
+            <ToggleButton Classes="chip" IsChecked="{Binding ShowExplicit}" Content="E"
+                          ToolTip.Tip="{svc:T 'hover.ratingExplicit'}" />
+          </StackPanel>
+          <Button Classes="icon" Click="OnSortClick" ToolTip.Tip="{svc:T 'next.sortBy'}" VerticalAlignment="Center">
+            <Path Classes="ico" Data="{StaticResource IconSort}" />
+          </Button>
+          <Slider Minimum="120" Maximum="360" Width="110" VerticalAlignment="Center" Value="{Binding TileSize}"
+                  ToolTip.Tip="{svc:T 'next.tileSize'}" />
+          <Button Content="{svc:T 'next.queueSelected'}" Click="OnQueueSelected" />
+          <Button Content="{svc:T 'next.queueAll'}" Command="{Binding AddAllLoadedCommand}" />
+        </StackPanel>
+      </Grid>
+    </Border>
+    <Panel>
+      <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12" IsVisible="{Binding ShowEmpty}">
+        <Path Classes="ico" Width="36" Height="36" StrokeThickness="1.25" Stroke="{DynamicResource KtBorderBrush}"
+              Data="{StaticResource IconSearch}" HorizontalAlignment="Center" />
+        <TextBlock Classes="muted" Text="{Binding EmptyText}" TextWrapping="Wrap" TextAlignment="Center" MaxWidth="360" />
+      </StackPanel>
+      <ListBox x:Name="Grid" Classes="grid" Margin="6,2" ItemsSource="{Binding Posts}" SelectionMode="Multiple,Toggle"
+               Background="Transparent" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+               DoubleTapped="OnDoubleTapped" KeyDown="OnGridKeyDown">
+        <ListBox.Styles>
+          <Style Selector="ListBoxItem" x:DataType="vm:PostViewModel">
+            <Setter Property="IsVisible" Value="{Binding Shown}" />
+          </Style>
+        </ListBox.Styles>
+        <ListBox.ItemsPanel>
+          <ItemsPanelTemplate>
+            <WrapPanel />
+          </ItemsPanelTemplate>
+        </ListBox.ItemsPanel>
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:PostViewModel">
+            <Border Classes="tile" Width="{Binding $parent[ListBox].((vm:PostGridViewModel)DataContext).TileSize}" Height="{Binding $parent[ListBox].((vm:PostGridViewModel)DataContext).TileSize}" ToolTip.ShowDelay="500" ToolTip.Placement="Pointer"
+                    ContextRequested="OnContextRequested">
+              <ToolTip.Tip>
+                <StackPanel Spacing="10" MaxWidth="300" Margin="2">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <Border Classes="rating safe" IsVisible="{Binding RatingSafe}"><TextBlock Text="{Binding RatingText}" /></Border>
+                    <Border Classes="rating questionable" IsVisible="{Binding RatingQuestionable}"><TextBlock Text="{Binding RatingText}" /></Border>
+                    <Border Classes="rating explicit" IsVisible="{Binding RatingExplicit}"><TextBlock Text="{Binding RatingText}" /></Border>
+                    <TextBlock Text="{Binding ScoreText}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    <TextBlock Classes="muted" Text="{Binding Dimensions}" VerticalAlignment="Center" />
+                  </StackPanel>
+                  <ItemsControl ItemsSource="{Binding HoverTagList}" IsVisible="{Binding HasHoverTags}">
+                    <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="x:String">
+                        <Border Classes="tagchip"><TextBlock Text="{Binding}" /></Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                  <TextBlock Classes="muted" FontSize="12" Text="{Binding HoverMore}"
+                             IsVisible="{Binding HoverMore, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                </StackPanel>
+              </ToolTip.Tip>
+              <Grid>
+                <Image Classes="thumb" Source="{Binding Thumbnail}" Stretch="UniformToFill" />
+                <TextBlock Classes="muted" HorizontalAlignment="Center" VerticalAlignment="Center"
+                           IsVisible="{Binding ThumbnailFailed}" Text="{svc:T 'next.noPreview'}" />
+                <Border Classes="caption" VerticalAlignment="Bottom" Padding="10,26,8,8">
+                  <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
+                    <TextBlock Text="{Binding Caption}" FontSize="11" Foreground="White" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                      <Button Classes="overlay" Classes.on="{Binding InQueue}" Click="OnTileQueueClick" ToolTip.Tip="{svc:T 'grid.addToQueue'}">
+                        <Path Classes="ico" Data="{StaticResource IconDownload}" />
+                      </Button>
+                      <Button Classes="overlay" Classes.on="{Binding IsFavorite}" Click="OnTileFavoriteClick" ToolTip.Tip="{svc:T 'next.favoritePost'}">
+                        <Path Classes="ico" Data="{StaticResource IconStar}" />
+                      </Button>
+                    </StackPanel>
+                  </Grid>
+                </Border>
+                <StackPanel HorizontalAlignment="Right" VerticalAlignment="Top" Margin="6" Spacing="4">
+                  <Border Classes="badge" Background="{DynamicResource KtAccentBrush}" IsVisible="{Binding ShowQueued}">
+                    <TextBlock Text="{svc:T 'next.queuedBadge'}" />
+                  </Border>
+                  <Border Classes="badge" Background="{DynamicResource KtAccentBrush}" Padding="5" IsVisible="{Binding IsFavorite}">
+                    <Path Classes="ico fill" Width="11" Height="11" StrokeThickness="1.5"
+                          Fill="{DynamicResource KtOnAccentBrush}" Stroke="{DynamicResource KtOnAccentBrush}" Data="{StaticResource IconStar}" />
+                  </Border>
+                </StackPanel>
+                <Border Classes="badge" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="6"
+                        Background="{DynamicResource KtSuccessBrush}" IsVisible="{Binding WasDownloaded}">
+                  <TextBlock Text="{svc:T 'next.savedBadge'}" />
+                </Border>
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </Panel>
+  </DockPanel>
+</UserControl>

@@ -1,0 +1,39 @@
+{
+  "format": "kurotsuki-backup",
+  "version": 1,
+  "createdAt": "2026-10-31T12:00:00Z",
+  "app": "desktop",
+  "includesSecrets": true,
+  "boorus": [
+    {"name": "Danbooru", "engine": "danbooru", "baseUrl": "https://danbooru.donmai.us/", "login": "alice", "apiKey": "SECRET1"},
+    {"name": "yande.re", "engine": "moebooru", "baseUrl": "https://yande.re"},
+    {"name": "Gelbooru", "engine": "gelbooru", "baseUrl": "https://gelbooru.com", "login": "42", "apiKey": "SECRET2"},
+    {"name": "Bad", "engine": "e621", "baseUrl": "ftp://nope"}
+  ],
+  "blacklist": ["gore", "bad_tag"],
+  "favoriteTags": ["cat", "dog", "bird"],
+  "tagGroups": [
+    {"name": "Pets", "tags": ["cat", "dog"]},
+    {"name": "Empty", "tags": []}
+  ],
+  "favoritePosts": [
+    {"booruBaseUrl": "https://danbooru.donmai.us", "id": 1, "score": 5, "width": 100, "height": 200,
+     "image": "abc.png", "rating": "general", "source": "https://src.example/1", "tags": "cat solo artist_x",
+     "previewUrl": "https://cdn.example/p1.jpg", "fileUrl": "https://cdn.example/f1.png",
+     "sampleUrl": "https://cdn.example/s1.jpg",
+     "tagCategories": {"cat": "general", "artist_x": "ARTIST"}},
+    {"booruBaseUrl": "https://yande.re", "id": 2, "tags": "", "fileUrl": "file:///etc/passwd",
+     "previewUrl": "javascript:alert(1)"}
+  ],
+  "folders": [
+    {"name": "Best", "posts": [
+      {"booruBaseUrl": "https://yande.re/", "id": 3, "tags": "dog", "rating": "explicit"}
+    ]}
+  ],
+  "reading": [
+    {"poolKey": "https://danbooru.donmai.us#pool:30", "booruBaseUrl": "https://danbooru.donmai.us",
+     "poolId": 30, "name": "B gumi", "category": "series", "page": 4, "total": 10, "finished": false,
+     "updatedAt": 1761912000000}
+  ],
+  "settings": {"language": "pt", "poolArchiveFormat": "cbz", "readerRightToLeft": true, "futureKey": "kept"}
+}

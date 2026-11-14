@@ -1,0 +1,39 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Kurotsuki.App.ViewModels"
+             xmlns:svc="using:Kurotsuki.App.Services"
+             x:Class="Kurotsuki.App.Views.ReadingTabView"
+             x:DataType="vm:ReadingTabViewModel">
+  <DockPanel Margin="18,14">
+    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="10" Margin="0,0,0,10">
+      <TextBlock Classes="title" Text="{svc:T 'reading.title'}" VerticalAlignment="Center" />
+      <ComboBox ItemsSource="{Binding Filters}" SelectedItem="{Binding Filter}" />
+    </StackPanel>
+    <TextBlock DockPanel.Dock="Top" Classes="muted" TextWrapping="Wrap" Text="{Binding Status}" />
+    <ListBox Classes="rows" ItemsSource="{Binding Items}" Background="Transparent">
+      <ListBox.ItemTemplate>
+        <DataTemplate x:DataType="vm:ReadingItemViewModel">
+          <Grid ColumnDefinitions="*,Auto" Margin="2">
+            <StackPanel VerticalAlignment="Center">
+              <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+              <TextBlock Classes="muted" FontSize="12">
+                <Run Text="{Binding Host}" /> · <Run Text="{Binding ProgressText}" />
+              </TextBlock>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+              <Button Classes="accent" Content="{svc:T 'reading.continue'}" Command="{Binding ContinueCommand}" />
+              <Button Classes="icon"><Path Classes="ico" StrokeThickness="1.6" Data="{StaticResource IconMore}" />
+                <Button.Flyout>
+                  <MenuFlyout>
+                    <MenuItem Header="{Binding FinishToggleText}" Command="{Binding ToggleFinishedCommand}" />
+                    <MenuItem Header="{svc:T 'reading.forget'}" Command="{Binding ForgetCommand}" />
+                  </MenuFlyout>
+                </Button.Flyout>
+              </Button>
+            </StackPanel>
+          </Grid>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+  </DockPanel>
+</UserControl>

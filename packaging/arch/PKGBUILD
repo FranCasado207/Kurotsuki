@@ -1,0 +1,44 @@
+# Maintainer: Francisco <fran.casado207@gmail.com>
+# Local build: scripts/arch-package.sh creates the source tarball next to this file and runs makepkg.
+pkgname=KuroTsukiV2
+pkgver=2.4.0
+pkgrel=1
+pkgdesc='Desktop client for booru image sites (Avalonia rewrite of Kurotsuki)'
+arch=('x86_64')
+license=('custom')
+depends=('dotnet-runtime>=10' 'vlc' 'hicolor-icon-theme')
+makedepends=('dotnet-sdk>=10')
+optdepends=('p7zip: read 7z comic archives'
+            'unrar: read rar comic archives'
+            'ffmpeg: video metadata')
+options=('!strip' '!debug')
+source=("$pkgname-$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+build() {
+  cd "$pkgname-$pkgver"
+  export DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_NOLOGO=1 DOTNET_CLI_HOME="$srcdir/.dotnet"
+  dotnet publish src/Kurotsuki.App -c Release -r linux-x64 --no-self-contained -o "$srcdir/out"
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+  install -dm755 "$pkgdir/usr/lib/$pkgname"
+  cp -r "$srcdir/out/." "$pkgdir/usr/lib/$pkgname/"
+  # The app host looks for the runtime in places Arch does not use; go through `dotnet`.
+  rm -f "$pkgdir/usr/lib/$pkgname/kurotsuki-next" "$pkgdir/usr/lib/$pkgname/"*.pdb
+
+  install -dm755 "$pkgdir/usr/bin"
+  cat > "$pkgdir/usr/bin/kurotsukiv2" <<LAUNCH
+#!/bin/sh
+exec dotnet /usr/lib/$pkgname/kurotsuki-next.dll "\$@"
+LAUNCH
+  chmod 755 "$pkgdir/usr/bin/kurotsukiv2"
+
+  install -Dm644 packaging/arch/KuroTsukiV2.desktop "$pkgdir/usr/share/applications/KuroTsukiV2.desktop"
+  for size in 64 128 256 512; do
+    install -Dm644 "packaging/icons/kurotsuki-next-$size.png" \
+      "$pkgdir/usr/share/icons/hicolor/${size}x${size}/apps/kurotsukiv2.png"
+  done
+  install -Dm644 packaging/icons/kurotsuki-next.svg "$pkgdir/usr/share/icons/hicolor/scalable/apps/kurotsukiv2.svg"
+}

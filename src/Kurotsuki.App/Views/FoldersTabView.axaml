@@ -1,0 +1,26 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Kurotsuki.App.ViewModels"
+             xmlns:svc="using:Kurotsuki.App.Services"
+             x:Class="Kurotsuki.App.Views.FoldersTabView"
+             x:DataType="vm:FoldersTabViewModel">
+  <DockPanel Margin="18,14">
+    <Button DockPanel.Dock="Top" Classes="accent" HorizontalAlignment="Left" Content="{svc:T 'folders.new'}" Command="{Binding NewFolderCommand}" Margin="0,0,0,10" />
+    <TextBlock DockPanel.Dock="Top" Classes="muted" Text="{svc:T 'folders.empty'}" IsVisible="{Binding !Folders.Count}" />
+    <ListBox Classes="rows" ItemsSource="{Binding Folders}" Background="Transparent">
+      <ListBox.ItemTemplate>
+        <DataTemplate x:DataType="x:String">
+          <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,2">
+            <TextBlock Text="{Binding}" VerticalAlignment="Center" />
+            <Button Grid.Column="1" Content="{svc:T 'folders.open'}" Margin="0,0,6,0"
+                    Command="{Binding $parent[ListBox].((vm:FoldersTabViewModel)DataContext).OpenCommand}"
+                    CommandParameter="{Binding}" />
+            <Button Grid.Column="2" Content="{svc:T 'common.delete'}"
+                    Command="{Binding $parent[ListBox].((vm:FoldersTabViewModel)DataContext).DeleteCommand}"
+                    CommandParameter="{Binding}" />
+          </Grid>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+  </DockPanel>
+</UserControl>

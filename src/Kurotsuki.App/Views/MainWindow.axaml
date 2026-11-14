@@ -1,0 +1,248 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Kurotsuki.App.ViewModels"
+        xmlns:v="using:Kurotsuki.App.Views"
+        xmlns:svc="using:Kurotsuki.App.Services"
+        xmlns:dl="using:Kurotsuki.Core.Download"
+        xmlns:cfg="using:Kurotsuki.Core.Config"
+        x:Class="Kurotsuki.App.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Title="Kurotsuki" Width="1360" Height="840" MinWidth="760" MinHeight="480"
+        Classes.privacy="{Binding PrivacyMode}"
+        Icon="avares://kurotsuki-next/Assets/kurotsuki.png">
+  <Window.DataTemplates>
+    <DataTemplate DataType="vm:SearchTabViewModel"><v:PostGridView /></DataTemplate>
+    <DataTemplate DataType="vm:MergedSearchTabViewModel"><v:PostGridView /></DataTemplate>
+    <DataTemplate DataType="vm:FavoritesTabViewModel"><v:PostGridView /></DataTemplate>
+    <DataTemplate DataType="vm:FolderTabViewModel"><v:PostGridView /></DataTemplate>
+    <DataTemplate DataType="vm:PoolTabViewModel"><v:PoolTabView /></DataTemplate>
+    <DataTemplate DataType="vm:FoldersTabViewModel"><v:FoldersTabView /></DataTemplate>
+    <DataTemplate DataType="vm:PoolsTabViewModel"><v:PoolsTabView /></DataTemplate>
+    <DataTemplate DataType="vm:ReadingTabViewModel"><v:ReadingTabView /></DataTemplate>
+  </Window.DataTemplates>
+
+  <DockPanel>
+    <!-- Top bar: brand, one search pill, downloads, menu -->
+    <Grid DockPanel.Dock="Top" ColumnDefinitions="16,*,Auto" Height="60">
+      <Border Grid.Column="1" Classes="pill" MaxWidth="720" Height="42" VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="8,0">
+        <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto,Auto">
+          <ComboBox Classes="bare" MinWidth="130" Margin="6,0,0,0" ItemsSource="{Binding Boorus}"
+                    SelectedItem="{Binding SelectedBooru}" PlaceholderText="{svc:T 'main.selectBooru'}"
+                    VerticalAlignment="Center">
+            <ComboBox.ItemTemplate>
+              <DataTemplate x:DataType="cfg:BooruConfiguration">
+                <TextBlock Text="{Binding ShortName}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+          <Rectangle Grid.Column="1" Width="1" Height="18" Fill="{DynamicResource KtBorderBrush}" Margin="4,0" />
+          <ToggleButton Grid.Column="2" Classes="chip" IsVisible="{Binding CanPools}" IsChecked="{Binding PoolMode}" VerticalAlignment="Center"
+                        Content="{svc:T 'next.poolsMode'}" ToolTip.Tip="{svc:T 'next.poolsModeTip'}" />
+          <ToggleButton Grid.Column="3" Classes="chip" IsChecked="{Binding MergeMode}" IsVisible="{Binding CanMerge}" VerticalAlignment="Center"
+                        Margin="4,0,0,0" Content="{svc:T 'next.mergeMode'}" ToolTip.Tip="{svc:T 'next.mergeModeTip'}" />
+          <AutoCompleteBox Grid.Column="4" Classes="bare" x:Name="SearchBox" Text="{Binding SearchText}" MinimumPrefixLength="2"
+                           FilterMode="None" PlaceholderText="{Binding SearchPlaceholder}" VerticalAlignment="Center" />
+          <Button Grid.Column="5" x:Name="HistoryButton" Classes="icon" Click="OnHistoryClick" ToolTip.Tip="{svc:T 'next.history'}"
+                  VerticalAlignment="Center">
+            <Path Classes="ico" Data="{StaticResource IconHistory}" />
+          </Button>
+          <Button Grid.Column="6" Classes="accent round" Margin="0,0,5,0" Command="{Binding SearchCommand}"
+                  IsEnabled="{Binding HasBoorus}" ToolTip.Tip="{svc:T 'common.search'}" VerticalAlignment="Center">
+            <Path Classes="ico" Data="{StaticResource IconSearch}" />
+          </Button>
+        </Grid>
+      </Border>
+      <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="14" Margin="0,0,18,0" VerticalAlignment="Center">
+        <Panel>
+          <Button Classes="icon" Command="{Binding ToggleQueueCommand}" ToolTip.Tip="{svc:T 'next.downloadsTip'}">
+            <Path Classes="ico" Data="{StaticResource IconDownload}" />
+          </Button>
+          <Border Classes="badge" Background="{DynamicResource KtAccentBrush}" HorizontalAlignment="Right" VerticalAlignment="Top"
+                  Margin="0,-3,-6,0" IsHitTestVisible="False" IsVisible="{Binding HasQueue}">
+            <TextBlock Text="{Binding QueueItems.Count}" />
+          </Border>
+        </Panel>
+        <Button Classes="icon" x:Name="MoreButton" Click="OnMoreClick" ToolTip.Tip="{svc:T 'next.moreMenu'}">
+          <Path Classes="ico" Data="{StaticResource IconMore}" Fill="{DynamicResource KtTextBrush}" />
+        </Button>
+      </StackPanel>
+    </Grid>
+
+    <!-- Rail -->
+    <StackPanel DockPanel.Dock="Left" Width="68" Spacing="4" Margin="0,4,0,0">
+      <Button Classes="rail" Classes.active="{Binding OnSearch}" Click="OnRailSearchClick">
+        <StackPanel Spacing="3"><Path Classes="ico" Data="{StaticResource IconSearch}" HorizontalAlignment="Center" />
+          <TextBlock Text="{svc:T 'next.railSearch'}" /></StackPanel>
+      </Button>
+      <Button Classes="rail" Classes.active="{Binding OnFavorites}" Command="{Binding ShowFavoritesCommand}">
+        <StackPanel Spacing="3"><Path Classes="ico" Data="{StaticResource IconStar}" HorizontalAlignment="Center" />
+          <TextBlock Text="{svc:T 'next.railFavorites'}" /></StackPanel>
+      </Button>
+      <Button Classes="rail" Classes.active="{Binding OnFolders}" Command="{Binding ShowFoldersCommand}">
+        <StackPanel Spacing="3"><Path Classes="ico" Data="{StaticResource IconFolder}" HorizontalAlignment="Center" />
+          <TextBlock Text="{svc:T 'next.railFolders'}" /></StackPanel>
+      </Button>
+      <Button Classes="rail" Classes.active="{Binding OnReading}" Command="{Binding ShowReadingCommand}">
+        <StackPanel Spacing="3"><Path Classes="ico" Data="{StaticResource IconBook}" HorizontalAlignment="Center" />
+          <TextBlock Text="{svc:T 'next.railReading'}" /></StackPanel>
+      </Button>
+      <Rectangle Height="1" Fill="{DynamicResource KtBorderBrush}" Margin="16,6" />
+      <Button Classes="rail" Classes.active="{Binding SidebarVisible}" Command="{Binding ToggleSidebarCommand}">
+        <StackPanel Spacing="3"><Path Classes="ico" Data="{StaticResource IconTag}" HorizontalAlignment="Center" />
+          <TextBlock Text="{svc:T 'next.railTags'}" /></StackPanel>
+      </Button>
+    </StackPanel>
+
+    <!-- Downloads drawer -->
+    <Border DockPanel.Dock="Right" x:Name="QueuePanel" Width="340" Margin="0,0,10,10" IsVisible="{Binding QueueVisible}">
+      <Border Classes="card" BorderThickness="0" CornerRadius="18" Padding="16,14">
+        <DockPanel>
+          <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+            <TextBlock Classes="title" Text="{Binding QueueTitle}" VerticalAlignment="Center" />
+            <Button Grid.Column="1" Classes="icon" Command="{Binding ToggleQueueCommand}" ToolTip.Tip="{svc:T 'next.close'}">
+              <Path Classes="ico" Data="{StaticResource IconClose}" />
+            </Button>
+          </Grid>
+          <Border DockPanel.Dock="Top" Background="{DynamicResource KtSurfaceRaisedBrush}" CornerRadius="12" Padding="12,10"
+                  Margin="0,0,0,10" IsVisible="{Binding HasQueue}">
+            <StackPanel Spacing="8">
+              <TextBlock Text="{Binding OverallText}" FontWeight="SemiBold" />
+              <ProgressBar Minimum="0" Maximum="1" Height="6" CornerRadius="3" Value="{Binding OverallProgress}" />
+            </StackPanel>
+          </Border>
+          <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6" Margin="0,0,0,12">
+            <Button Classes="accent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Command="{Binding StartAllCommand}">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Path Classes="ico" Data="{StaticResource IconDownload}" />
+                <TextBlock Text="{svc:T 'next.start'}" />
+              </StackPanel>
+            </Button>
+            <Button Grid.Column="1" Classes="icon" Command="{Binding ClearFinishedCommand}" ToolTip.Tip="{svc:T 'download.clearFinished'}">
+              <Path Classes="ico" Data="{StaticResource IconCheck}" />
+            </Button>
+            <Button Grid.Column="2" Classes="icon" Command="{Binding ForgetHistoryCommand}" ToolTip.Tip="{svc:T 'next.forgetHistory'}">
+              <Path Classes="ico" Data="{StaticResource IconHistory}" />
+            </Button>
+          </Grid>
+          <StackPanel VerticalAlignment="Center" Spacing="10" Margin="0,40,0,0" IsVisible="{Binding !HasQueue}" DockPanel.Dock="Top">
+            <Path Classes="ico" Width="40" Height="40" StrokeThickness="1" Stroke="{DynamicResource KtBorderBrush}" Data="{StaticResource IconDownload}" />
+            <TextBlock Classes="muted" TextWrapping="Wrap" TextAlignment="Center" Text="{svc:T 'download.empty'}" />
+          </StackPanel>
+          <ScrollViewer>
+            <ItemsControl ItemsSource="{Binding QueueItems}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="dl:DownloadItem">
+                  <Border Classes="queueItem">
+                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="4">
+                      <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" FontWeight="SemiBold" />
+                      <ProgressBar Grid.Row="1" Grid.ColumnSpan="2" Minimum="0" Maximum="1" Height="4" CornerRadius="2"
+                                   Value="{Binding Progress}" IsVisible="{Binding IsActive}" />
+                      <TextBlock Grid.Row="2" Classes="muted" Classes.failed="{Binding IsFailed}" FontSize="12" Text="{Binding Label}"
+                                 TextTrimming="CharacterEllipsis" />
+                      <StackPanel Grid.RowSpan="3" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
+                        <Button Classes="icon" ToolTip.Tip="{svc:T 'next.retry'}" IsVisible="{Binding IsFailed}"
+                                Command="{Binding $parent[ItemsControl].((vm:MainViewModel)DataContext).RetryItemCommand}"
+                                CommandParameter="{Binding}"><Path Classes="ico" Data="{StaticResource IconRetry}" /></Button>
+                        <Button Classes="icon" ToolTip.Tip="{svc:T 'next.openFolder'}" IsVisible="{Binding IsDone}"
+                                Command="{Binding $parent[ItemsControl].((vm:MainViewModel)DataContext).OpenItemFolderCommand}"
+                                CommandParameter="{Binding}"><Path Classes="ico" Data="{StaticResource IconFolder}" /></Button>
+                        <Button Classes="icon" ToolTip.Tip="{svc:T 'next.openFile'}" IsVisible="{Binding IsDone}"
+                                Command="{Binding $parent[ItemsControl].((vm:MainViewModel)DataContext).OpenItemFileCommand}"
+                                CommandParameter="{Binding}"><Path Classes="ico" Data="{StaticResource IconOpen}" /></Button>
+                        <Button Classes="icon" ToolTip.Tip="{svc:T 'common.remove'}"
+                                Command="{Binding $parent[ItemsControl].((vm:MainViewModel)DataContext).RemoveItemCommand}"
+                                CommandParameter="{Binding}"><Path Classes="ico" Data="{StaticResource IconClose}" /></Button>
+                      </StackPanel>
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </DockPanel>
+      </Border>
+    </Border>
+
+    <!-- Sidebar: booru, search, favourite tags -->
+    <Border DockPanel.Dock="Left" x:Name="SidebarPanel" Width="240" Margin="0,0,10,10"
+            IsVisible="{Binding SidebarVisible}">
+      <Border Classes="card" BorderThickness="0" CornerRadius="18"><DockPanel>
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,6">
+          <TextBlock Classes="heading" Text="{svc:T 'sidebar.favTags'}" VerticalAlignment="Center" />
+          <Button Grid.Column="1" Classes="icon" ToolTip.Tip="{svc:T 'next.addToFavorites'}"
+                  Command="{Binding AddFavoriteTagCommand}"><Path Classes="ico" Data="{StaticResource IconPlus}" /></Button>
+          <Button Grid.Column="2" Classes="icon" ToolTip.Tip="{svc:T 'tagGroups.new'}"
+                  Command="{Binding NewTagGroupCommand}"><Path Classes="ico" Data="{StaticResource IconGroup}" /></Button>
+        </Grid>
+        <TextBlock DockPanel.Dock="Top" Classes="muted" Text="{svc:T 'sidebar.noFavTags'}"
+                   IsVisible="{Binding !HasFavorites}" />
+        <ScrollViewer>
+          <ItemsControl ItemsSource="{Binding Favorites}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:FavoriteSection">
+                <StackPanel Margin="0,0,0,8">
+                  <TextBlock Text="{Binding Header}" IsVisible="{Binding HasHeader}" FontWeight="SemiBold" FontSize="12"
+                             Foreground="{DynamicResource KtAccentBrush}" Margin="8,6,0,2"
+                             PointerReleased="OnGroupHeaderReleased" />
+                  <ItemsControl ItemsSource="{Binding Tags}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:FavoriteTagItem">
+                        <Button Classes="flat" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Foreground="{DynamicResource KtTextBrush}"
+                                Content="{Binding Display}" Click="OnFavoriteTagClick"
+                                ContextRequested="OnFavoriteTagContextRequested" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+      </DockPanel></Border>
+    </Border>
+
+    <!-- Canvas: tab chips + the open tab, inset like a sheet -->
+    <Border Classes="canvas" Margin="0,0,10,10">
+      <DockPanel>
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="10,8,14,0" IsVisible="{Binding !!Tabs.Count}">
+          <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+            <ListBox Classes="chips" ItemsSource="{Binding Tabs}" SelectedItem="{Binding SelectedTab}" Background="Transparent">
+              <ListBox.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="4" /></ItemsPanelTemplate></ListBox.ItemsPanel>
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:TabViewModel">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="{Binding Title}" MaxWidth="200" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                    <Button Classes="icon close" Command="{Binding $parent[ListBox].((vm:MainViewModel)DataContext).CloseTabCommand}"
+                            CommandParameter="{Binding}"><Path Classes="ico" Width="10" Height="10" Data="{StaticResource IconClose}" /></Button>
+                  </StackPanel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </ScrollViewer>
+          <TextBlock Grid.Column="1" Classes="muted" FontSize="12" MaxWidth="360" Margin="12,0,0,0" VerticalAlignment="Center"
+                     Text="{Binding Status}" TextTrimming="CharacterEllipsis" />
+        </Grid>
+        <Panel>
+          <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10" IsVisible="{Binding !Tabs.Count}">
+            <Path Classes="ico" Width="52" Height="52" StrokeThickness="1" Stroke="{DynamicResource KtAccentBrush}"
+                  Data="{StaticResource IconSearch}" HorizontalAlignment="Center" />
+            <TextBlock Classes="title" FontSize="24" Text="{svc:T 'next.welcomeTitle'}" TextAlignment="Center" />
+            <TextBlock Classes="muted" Text="{svc:T 'grid.initial'}" TextAlignment="Center" />
+            <Button Classes="accent" HorizontalAlignment="Center" Content="{svc:T 'next.addFirstBooru'}" Click="OnSettingsClick"
+                    IsVisible="{Binding !HasBoorus}" Margin="0,6,0,0" />
+            <TextBlock Classes="muted" FontSize="12" Text="{Binding Status}" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="480" />
+          </StackPanel>
+          <!-- One live view per tab, only the selected one shown: switching back keeps scroll position and selection. -->
+          <ItemsControl ItemsSource="{Binding Tabs}">
+            <ItemsControl.Styles>
+              <Style Selector="ContentPresenter" x:DataType="vm:TabViewModel">
+                <Setter Property="IsVisible" Value="{Binding IsSelected}" />
+              </Style>
+            </ItemsControl.Styles>
+            <ItemsControl.ItemsPanel><ItemsPanelTemplate><Panel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+          </ItemsControl>
+        </Panel>
+      </DockPanel>
+    </Border>
+  </DockPanel>
+</Window>

@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <EmbeddedResource Include="I18n\*.properties" />
+    <InternalsVisibleTo Include="Kurotsuki.Core.Tests" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.14" />
+    <!-- Pinned above the version Microsoft.Data.Sqlite brings in: 2.1.11 has a known high-severity advisory (NU1903). -->
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.14" />
+  </ItemGroup>
+</Project>

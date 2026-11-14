@@ -1,0 +1,166 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Kurotsuki.App.ViewModels"
+        xmlns:svc="using:Kurotsuki.App.Services"
+        xmlns:cfg="using:Kurotsuki.Core.Config"
+        xmlns:th="using:Kurotsuki.Core.Theming"
+        x:Class="Kurotsuki.App.Views.SettingsWindow"
+        x:DataType="vm:SettingsViewModel"
+        Title="{svc:T 'settings.title'}" Width="680" Height="760" WindowStartupLocation="CenterOwner">
+  <DockPanel>
+    <Border DockPanel.Dock="Bottom" Classes="footer">
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+        <Button Content="{svc:T 'next.cancel'}" Click="OnCancel" />
+        <Button Content="{svc:T 'next.save'}" Classes="accent" Click="OnSave" />
+      </StackPanel>
+    </Border>
+    <TextBlock DockPanel.Dock="Top" Classes="dialogTitle" Text="{svc:T 'settings.title'}" Margin="24,20,24,12" />
+    <TabControl Margin="16,0,16,0">
+      <TabItem Header="{svc:T 'settings.tabGeneral'}">
+        <ScrollViewer>
+          <StackPanel Spacing="14" Margin="12,12,16,12">
+            <TextBlock Classes="heading" Text="{svc:T 'settings.downloads'}" />
+            <StackPanel Spacing="4">
+              <TextBlock Text="{svc:T 'settings.downloadFolderTitle'}" />
+              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
+                <TextBox Text="{Binding DownloadFolder}" PlaceholderText="{svc:T 'settings.downloadFolderPrompt'}" />
+                <Button Grid.Column="1" Content="{svc:T 'next.browse'}" Click="OnBrowseDownloads" />
+              </Grid>
+            </StackPanel>
+            <StackPanel Spacing="4">
+              <TextBlock Text="{svc:T 'settings.downloadTemplate'}" />
+              <TextBox Text="{Binding DownloadTemplate}" PlaceholderText="%booru%/%artist%/%id%_%md5%.%ext%" />
+              <TextBlock Classes="muted" FontSize="12" TextWrapping="Wrap" Text="{Binding TemplateHelp}" />
+            </StackPanel>
+            <StackPanel Spacing="4">
+              <TextBlock Text="{svc:T 'settings.downloadSidecar'}" />
+              <ComboBox ItemsSource="{x:Static vm:SettingsViewModel.SidecarChoices}" SelectedItem="{Binding Sidecar}" />
+            </StackPanel>
+            <CheckBox Content="{svc:T 'settings.redownload'}" IsChecked="{Binding RedownloadKnown}" />
+            <StackPanel Spacing="4">
+              <TextBlock Text="{svc:T 'settings.poolFormat'}" />
+              <ComboBox ItemsSource="{Binding PoolFormats}" SelectedItem="{Binding PoolFormat}" />
+            </StackPanel>
+
+            <TextBlock Classes="heading" Text="{svc:T 'next.readerSection'}" Margin="0,8,0,0" />
+            <StackPanel Spacing="4">
+              <TextBlock Text="{svc:T 'settings.readerMemory'}" />
+              <NumericUpDown Minimum="32" Maximum="8192" Increment="32" FormatString="0" Value="{Binding ReaderMemory}" Width="160" HorizontalAlignment="Left" />
+              <TextBlock Classes="muted" FontSize="12" TextWrapping="Wrap" Text="{svc:T 'settings.readerMemoryHint'}" />
+            </StackPanel>
+            <CheckBox Content="{svc:T 'settings.readerBlacklist'}" IsChecked="{Binding ReaderHonorBlacklist}" />
+
+            <TextBlock Classes="heading" Text="{svc:T 'next.textSize'}" Margin="0,8,0,0" />
+            <ComboBox ItemsSource="{Binding TextSizes}" SelectedItem="{Binding TextSize}" />
+
+            <CheckBox Content="{svc:T 'next.saveState'}" IsChecked="{Binding SaveState}" Margin="0,8,0,0" />
+            <TextBlock Classes="muted" FontSize="12" TextWrapping="Wrap" Text="{svc:T 'next.saveStateHelp'}" />
+
+            <TextBlock Classes="heading" Text="{svc:T 'settings.language'}" Margin="0,8,0,0" />
+            <ComboBox ItemsSource="{Binding Languages}" SelectedItem="{Binding Language}" />
+            <TextBlock Classes="muted" FontSize="12" Text="{svc:T 'settings.restartNotice'}" />
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+
+      <TabItem Header="{svc:T 'next.appearance'}">
+        <ScrollViewer>
+          <StackPanel Spacing="14" Margin="12,12,16,12" DataContext="{Binding Appearance}" x:DataType="vm:ThemeEditorViewModel">
+            <TextBlock Classes="heading" Text="{svc:T 'next.theme'}" />
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
+              <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding Themes}" SelectedItem="{Binding Selected}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:DataType="th:ThemeDefinition"><TextBlock Text="{Binding Name}" /></DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+              <Button Grid.Column="1" Content="{svc:T 'next.themeNew'}" Command="{Binding NewCommand}" />
+              <Button Grid.Column="2" Content="{svc:T 'common.delete'}" Command="{Binding DeleteThemeCommand}" IsEnabled="{Binding IsCustom}" />
+            </Grid>
+            <CheckBox Content="{svc:T 'next.followSystem'}" IsChecked="{Binding FollowSystem}" />
+            <TextBlock Classes="muted" FontSize="12" TextWrapping="Wrap" Text="{svc:T 'next.themeHelp'}" />
+
+            <TextBlock Classes="heading" Text="{svc:T 'next.themeEditor'}" Margin="0,8,0,0" />
+            <TextBox Text="{Binding Name}" PlaceholderText="{svc:T 'next.themeName'}" />
+            <CheckBox Content="{svc:T 'next.themeDark'}" IsChecked="{Binding Dark}" />
+            <ItemsControl ItemsSource="{Binding Tokens}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:TokenEditViewModel">
+                  <Grid ColumnDefinitions="140,120,*" Margin="0,3" ColumnSpacing="8">
+                    <TextBlock Text="{Binding Label}" VerticalAlignment="Center" />
+                    <TextBox Grid.Column="1" Text="{Binding Hex}" MaxLength="9" />
+                    <TextBlock Grid.Column="2" Classes="error" VerticalAlignment="Center" Text="!" IsVisible="{Binding !Valid}" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock TextWrapping="Wrap" Text="{Binding Message}" IsVisible="{Binding Message, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button Classes="accent" Content="{svc:T 'next.themeSave'}" Command="{Binding SaveThemeCommand}" />
+              <Button Content="{svc:T 'next.themeFolder'}" Command="{Binding OpenFolderCommand}" />
+            </StackPanel>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+
+      <TabItem Header="{svc:T 'settings.tabBoorus'}">
+        <ScrollViewer>
+          <StackPanel Spacing="10" Margin="12,12,16,12">
+            <TextBlock Classes="muted" Text="{svc:T 'settings.noBooru'}" IsVisible="{Binding !Boorus.Count}" />
+            <ItemsControl ItemsSource="{Binding Boorus}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="cfg:BooruConfiguration">
+                  <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                    <StackPanel>
+                      <TextBlock Text="{Binding DisplayName}" />
+                      <TextBlock Classes="muted" FontSize="12" Text="{Binding BaseUrl}" />
+                    </StackPanel>
+                    <Button Grid.Column="1" Content="{svc:T 'common.remove'}"
+                            Command="{Binding $parent[ItemsControl].((vm:SettingsViewModel)DataContext).RemoveBooruCommand}"
+                            CommandParameter="{Binding}" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <Border Classes="card">
+              <StackPanel Spacing="8">
+                <TextBlock Text="{svc:T 'next.addBooru'}" FontWeight="SemiBold" />
+                <ComboBox ItemsSource="{Binding Kinds}" SelectedItem="{Binding NewKind}" HorizontalAlignment="Stretch" />
+                <TextBox Text="{Binding NewBaseUrl}" PlaceholderText="{svc:T 'next.addBooruHelp'}" />
+                <TextBox Text="{Binding NewUserId}" PlaceholderText="{svc:T 'next.userIdHint'}" />
+                <TextBox Text="{Binding NewApiKey}" PlaceholderText="{svc:T 'next.apiKeyHint'}" PasswordChar="•" />
+                <TextBlock Foreground="{DynamicResource KtDangerBrush}" Text="{Binding Error}" TextWrapping="Wrap" />
+                <TextBlock Foreground="{DynamicResource KtSuccessBrush}" Text="{Binding TestResult}" TextWrapping="Wrap" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Button Content="{svc:T 'next.testBooru'}" Command="{Binding TestBooruCommand}" IsEnabled="{Binding !Testing}" />
+                  <Button Classes="accent" Content="{svc:T 'common.add'}" Command="{Binding AddBooruCommand}" />
+                </StackPanel>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+
+      <TabItem Header="{svc:T 'settings.tabBlacklist'}">
+        <StackPanel Spacing="6" Margin="12">
+          <TextBlock Text="{svc:T 'settings.blacklistLabel'}" TextWrapping="Wrap" />
+          <TextBox Text="{Binding Blacklist}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="140" />
+          <TextBlock Classes="muted" FontSize="12" TextWrapping="Wrap" Text="{svc:T 'next.reportHelp'}" Margin="0,8,0,0" />
+          <TextBlock Text="{Binding AllowedInfo}" />
+          <Button Content="{svc:T 'next.forgetAllowed'}" Command="{Binding ForgetAllowedCommand}" HorizontalAlignment="Left" />
+        </StackPanel>
+      </TabItem>
+
+      <TabItem Header="{svc:T 'settings.tabCache'}">
+        <StackPanel Spacing="8" Margin="12">
+          <TextBlock Text="{svc:T 'settings.cacheLabel'}" />
+          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
+            <TextBox Text="{Binding CacheFolder}" PlaceholderText="{svc:T 'settings.cachePrompt'}" />
+            <Button Grid.Column="1" Content="{svc:T 'next.browse'}" Click="OnBrowseCache" />
+          </Grid>
+          <TextBlock Classes="muted" Text="{Binding CacheInfo}" />
+          <Button Content="{svc:T 'settings.clearCache'}" Command="{Binding ClearCacheCommand}" HorizontalAlignment="Left" />
+        </StackPanel>
+      </TabItem>
+    </TabControl>
+  </DockPanel>
+</Window>

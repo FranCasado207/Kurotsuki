@@ -1,0 +1,74 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Kurotsuki.App.ViewModels"
+        xmlns:svc="using:Kurotsuki.App.Services"
+        x:Class="Kurotsuki.App.Views.ReaderWindow"
+        x:DataType="vm:ReaderViewModel"
+        Title="{Binding Title}" Width="1100" Height="860" MinWidth="560" MinHeight="400"
+        WindowStartupLocation="CenterOwner" Background="{DynamicResource KtBackgroundBrush}">
+  <DockPanel>
+    <Border DockPanel.Dock="Top" Classes="panel" BorderThickness="0,0,0,1" Padding="10,6">
+      <Grid ColumnDefinitions="*,Auto">
+        <WrapPanel VerticalAlignment="Center">
+          <Button Classes="flat" Content="{Binding ModeText}" Command="{Binding ToggleModeCommand}" Margin="0,0,6,0" />
+          <Button Classes="flat" Content="{Binding SpreadText}" Command="{Binding ToggleSpreadCommand}" IsVisible="{Binding IsPaged}" Margin="0,0,6,0" />
+          <Button Classes="flat" Content="{Binding FitText}" Command="{Binding ToggleFitCommand}" Margin="0,0,6,0" />
+          <Button Classes="flat" Content="{Binding DirectionText}" Command="{Binding ToggleDirectionCommand}" IsVisible="{Binding IsPaged}" Margin="0,0,6,0" />
+          <Button Classes="icon" Command="{Binding ZoomOutCommand}"><Path Classes="ico" Data="{StaticResource IconMinus}" /></Button>
+          <Button Classes="flat" Content="{Binding ZoomText}" Command="{Binding ResetZoomCommand}" MinWidth="60" HorizontalContentAlignment="Center"
+                  ToolTip.Tip="{svc:T 'reader.zoomHint'}" Margin="0,0,4,0" />
+          <Button Classes="icon" Command="{Binding ZoomInCommand}" Margin="0,0,10,0"><Path Classes="ico" Data="{StaticResource IconPlus}" /></Button>
+          <Button Classes="icon" Classes.on="{Binding IsBookmarked}" Command="{Binding ToggleBookmarkCommand}"
+                  ToolTip.Tip="{svc:T 'next.bookmarkToggle'}">
+            <Path Classes="ico" Data="{StaticResource IconBookmark}" />
+          </Button>
+          <Button Classes="flat" Content="{svc:T 'next.bookmarks'}" Click="OnBookmarksClick" IsVisible="{Binding HasBookmarks}" Margin="0,0,10,0" />
+          <Button Classes="flat" Content="{svc:T 'next.nextPool'}" Click="OnNextPoolClick" IsVisible="{Binding HasNextPool}" Margin="0,0,6,0" />
+          <Button Classes="flat" Content="{svc:T 'reader.markFinished'}" Command="{Binding ToggleFinishedCommand}" Margin="0,0,6,0" />
+          <Button Classes="accent" Content="{svc:T 'pools.download'}" Command="{Binding DownloadCommand}" />
+        </WrapPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+          <TextBlock Text="{svc:T 'reader.finished'}" Foreground="{DynamicResource KtSuccessBrush}" IsVisible="{Binding IsFinished}" />
+          <TextBlock Classes="muted" Text="{Binding HiddenText}" />
+          <TextBlock Text="{Binding PageText}" FontWeight="SemiBold" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <Panel x:Name="ViewArea" ClipToBounds="True">
+      <!-- Paged: the shown page(s) are laid out in code (sizes depend on fit, zoom and viewport). -->
+      <ScrollViewer x:Name="PagedScroll" IsVisible="{Binding IsPaged}" HorizontalScrollBarVisibility="Auto"
+                    VerticalScrollBarVisibility="Auto" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+        <StackPanel x:Name="PagedHost" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" />
+      </ScrollViewer>
+
+      <!-- Scroll: a virtualised strip, each page as tall as its aspect ratio says. -->
+      <ScrollViewer x:Name="StripScroll" IsVisible="{Binding IsScroll}" HorizontalScrollBarVisibility="Auto">
+        <ItemsControl x:Name="Strip" ItemsSource="{Binding Pages}" HorizontalAlignment="Center">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate><StackPanel /></ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:ReaderPageViewModel">
+              <Border Width="{Binding StripWidth}" Height="{Binding StripHeight}" HorizontalAlignment="Center"
+                      AttachedToVisualTree="OnStripItemAttached" DetachedFromVisualTree="OnStripItemDetached">
+                <Panel>
+                  <Image Source="{Binding Bitmap}" Stretch="Uniform" />
+                  <ProgressBar IsIndeterminate="True" Width="120" IsVisible="{Binding IsLoading}" />
+                  <TextBlock Text="{Binding Error}" TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Panel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </ScrollViewer>
+
+      <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10" IsVisible="{Binding IsLoading}">
+        <ProgressBar IsIndeterminate="True" Width="160" />
+        <TextBlock Text="{svc:T 'reader.loading'}" HorizontalAlignment="Center" />
+      </StackPanel>
+      <TextBlock Text="{Binding Error}" TextWrapping="Wrap" MaxWidth="480" HorizontalAlignment="Center" VerticalAlignment="Center"
+                 TextAlignment="Center" IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+    </Panel>
+  </DockPanel>
+</Window>

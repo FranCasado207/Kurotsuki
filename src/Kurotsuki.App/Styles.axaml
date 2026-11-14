@@ -1,0 +1,481 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Styles.Resources>
+    <!-- Defaults (Dark). ThemeManager recolours these brushes in place when a theme is applied, so keep the keys stable. -->
+    <SolidColorBrush x:Key="KtBackgroundBrush" Color="#0E0F12" />
+    <SolidColorBrush x:Key="KtSurfaceBrush" Color="#15171B" />
+    <SolidColorBrush x:Key="KtSurfaceRaisedBrush" Color="#1D2026" />
+    <SolidColorBrush x:Key="KtBorderBrush" Color="#2A2E36" />
+    <SolidColorBrush x:Key="KtTextBrush" Color="#E8EAEE" />
+    <SolidColorBrush x:Key="KtTextMutedBrush" Color="#9097A3" />
+    <SolidColorBrush x:Key="KtAccentBrush" Color="#5EEAD4" />
+    <SolidColorBrush x:Key="KtOnAccentBrush" Color="#06201C" />
+    <SolidColorBrush x:Key="KtDangerBrush" Color="#F87171" />
+    <SolidColorBrush x:Key="KtSuccessBrush" Color="#4ADE80" />
+    <SolidColorBrush x:Key="KtHoverBrush" Color="#2A2E35" />
+    <x:Double x:Key="KtBaseFontSize">14</x:Double>
+    <SolidColorBrush x:Key="KtAccentHoverBrush" Color="#B9A1FB" />
+    <SolidColorBrush x:Key="KtAccentPressedBrush" Color="#C9B5FC" />
+    <!-- The pill is the selection marker; drop Fluent's underline. -->
+    <SolidColorBrush x:Key="TabItemHeaderSelectedPipeFill" Color="Transparent" />
+    <SolidColorBrush x:Key="TabItemHeaderSelectedPipeFillPointerOver" Color="Transparent" />
+    <SolidColorBrush x:Key="TabItemHeaderSelectedPipeFillPressed" Color="Transparent" />
+    <SolidColorBrush x:Key="TabItemHeaderSelectedPipeFillDisabled" Color="Transparent" />
+    <!-- Over thumbnails, whatever the theme. -->
+    <SolidColorBrush x:Key="KtScrimBrush" Color="#B3000000" />
+    <LinearGradientBrush x:Key="KtScrimGradientBrush" StartPoint="0%,0%" EndPoint="0%,100%">
+      <GradientStop Color="#00000000" Offset="0" />
+      <GradientStop Color="#D9000000" Offset="1" />
+    </LinearGradientBrush>
+  </Styles.Resources>
+
+  <Style Selector="Window">
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="Background" Value="{DynamicResource KtBackgroundBrush}" />
+  </Style>
+
+  <!-- Icons -->
+  <Style Selector="Path.ico">
+    <Setter Property="Width" Value="16" />
+    <Setter Property="Height" Value="16" />
+    <Setter Property="Stretch" Value="Uniform" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Stroke" Value="{DynamicResource KtTextBrush}" />
+    <Setter Property="StrokeThickness" Value="1.75" />
+    <Setter Property="StrokeLineCap" Value="Round" />
+    <Setter Property="StrokeJoin" Value="Round" />
+  </Style>
+  <Style Selector="Button.accent Path.ico">
+    <Setter Property="Stroke" Value="{DynamicResource KtOnAccentBrush}" />
+  </Style>
+  <Style Selector="Button:disabled Path.ico">
+    <Setter Property="Opacity" Value="0.4" />
+  </Style>
+  <Style Selector="Path.ico.fill">
+    <Setter Property="Fill" Value="{DynamicResource KtAccentBrush}" />
+    <Setter Property="Stroke" Value="{DynamicResource KtAccentBrush}" />
+  </Style>
+
+  <!-- Surfaces -->
+  <Style Selector="Border.panel">
+    <Setter Property="Background" Value="{DynamicResource KtSurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource KtBorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+  <Style Selector="Border.card">
+    <Setter Property="Background" Value="{DynamicResource KtSurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource KtBorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="16" />
+    <Setter Property="Padding" Value="14" />
+  </Style>
+
+  <!-- Shell: the window is the background colour, content sits on inset sheets -->
+  <Style Selector="Border.canvas">
+    <Setter Property="Background" Value="{DynamicResource KtSurfaceBrush}" />
+    <Setter Property="CornerRadius" Value="18" />
+    <Setter Property="ClipToBounds" Value="True" />
+  </Style>
+  <Style Selector="Border.pill">
+    <Setter Property="Background" Value="{DynamicResource KtSurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource KtBorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="21" />
+  </Style>
+  <Style Selector="Border.pill:focus-within">
+    <Setter Property="BorderBrush" Value="{DynamicResource KtAccentBrush}" />
+  </Style>
+  <Style Selector="Button.round">
+    <Setter Property="CornerRadius" Value="16" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="Width" Value="32" />
+    <Setter Property="Height" Value="32" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <!-- Controls that sit inside the search pill borrow its outline. -->
+  <Style Selector="AutoCompleteBox.bare">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+  <Style Selector="AutoCompleteBox.bare /template/ TextBox#PART_TextBox, AutoCompleteBox.bare /template/ TextBox#PART_TextBox:focus, AutoCompleteBox.bare /template/ TextBox#PART_TextBox:pointerover">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+  <Style Selector="AutoCompleteBox.bare /template/ TextBox#PART_TextBox /template/ Border#PART_BorderElement, AutoCompleteBox.bare /template/ TextBox#PART_TextBox:focus /template/ Border#PART_BorderElement, AutoCompleteBox.bare /template/ TextBox#PART_TextBox:pointerover /template/ Border#PART_BorderElement">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+  <Style Selector="ComboBox.bare">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+  <Style Selector="ComboBox.bare:pointerover /template/ Border#Background, ComboBox.bare:focus /template/ Border#Background">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+
+  <!-- Rail: icon over a small label; the active section gets an accent capsule -->
+  <Style Selector="Button.rail">
+    <Setter Property="Width" Value="56" />
+    <Setter Property="Padding" Value="0,8" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="14" />
+    <Setter Property="Foreground" Value="{DynamicResource KtTextMutedBrush}" />
+  </Style>
+  <Style Selector="Button.rail TextBlock">
+    <Setter Property="FontSize" Value="10.5" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Button.rail Path.ico">
+    <Setter Property="Stroke" Value="{DynamicResource KtTextMutedBrush}" />
+  </Style>
+  <Style Selector="Button.rail:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource KtHoverBrush}" />
+  </Style>
+  <Style Selector="Button.rail.active /template/ ContentPresenter#PART_ContentPresenter, Button.rail.active:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource KtSurfaceRaisedBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource KtAccentBrush}" />
+  </Style>
+  <Style Selector="Button.rail.active Path.ico">
+    <Setter Property="Stroke" Value="{DynamicResource KtAccentBrush}" />
+  </Style>
+
+  <!-- Tab chips -->
+  <Style Selector="ListBox.chips > ListBoxItem">
+    <Setter Property="Padding" Value="12,4,6,4" />
+    <Setter Property="CornerRadius" Value="16" />
+    <Setter Property="Foreground" Value="{DynamicResource KtTextMutedBrush}" />
+    <Setter Property="MinHeight" Value="30" />
+  </Style>
+  <Style Selector="ListBox.chips > ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter, ListBox.chips > ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource KtSurfaceRaisedBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource KtTextBrush}" />
+  </Style>
+  <Style Selector="Button.icon.close">
+    <Setter Property="Padding" Value="3" />
+    <Setter Property="MinWidth" Value="20" />
+    <Setter Property="MinHeight" Value="20" />
+    <Setter Property="CornerRadius" Value="10" />
+  </Style>
+
+  <!-- Text -->
+  <Style Selector="TextBlock.muted">
+    <Setter Property="Foreground" Value="{DynamicResource KtTextMutedBrush}" />
+  </Style>
+  <Style Selector="TextBlock.heading">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="LetterSpacing" Value="0.6" />
+    <Setter Property="Foreground" Value="{DynamicResource KtTextMutedBrush}" />
+  </Style>
+  <Style Selector="TextBlock.title">
+    <Setter Property="FontSize" Value="17" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="TextBlock.error">
+    <Setter Property="Foreground" Value="{DynamicResource KtDangerBrush}" />
+  </Style>
+
+  <!-- Buttons: quiet by default, one accent button per view. -->
+  <Style Selector="Button">
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="12,6" />
+    <Setter Property="Background" Value="{DynamicResource KtSurfaceRaisedBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource KtBorderBrush}" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Background" Duration="0:0:0.12" />
+      </Transitions>
+    </Setter>
+  </Style>
+  <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource KtHoverBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource KtBorderBrush}" />
+  </Style>
+  <Style Selector="Button:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource KtBorderBrush}" />
+  </Style>
+  <Style Selector="Button:focus-visible">
+    <Setter Property="BorderBrush" Value="{DynamicResource KtAccentBrush}" />
+  </Style>
+  <Style Selector="Button.accent">
+    <Setter Property="Background" Value="{DynamicResource KtAccentBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource KtOnAccentBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="Button.accent:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource KtAccentHoverBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource KtOnAccentBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+  </Style>
+  <Style Selector="Button.accent:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource KtAccentPressedBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource KtOnAccentBrush}" />
+  </Style>
+  <Style Selector="Button:disabled /template/ ContentPresenter#PART_ContentPresenter, Button.accent:disabled /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource KtSurfaceRaisedBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource KtTextMutedBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource KtBorderBrush}" />
+    <Setter Property="Opacity" Value="0.7" />
+  </Style>
+  <Style Selector="Button.flat">
+    <Setter Property="Foreground" Value="{DynamicResource KtTextBrush}" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="8,5" />
+  </Style>
+  <Style Selector="Button.flat:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource KtHoverBrush}" />
+  </Style>
+  <Style Selector="Button.icon">
+    <Setter Property="Foreground" Value="{DynamicResource KtTextBrush}" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="7" />
+    <Setter Property="MinWidth" Value="30" />
+    <Setter Property="MinHeight" Value="30" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Button.icon:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource KtHoverBrush}" />
+  </Style>
+
+  <!-- Inputs -->
+  <Style Selector="TextBox, ComboBox, AutoCompleteBox, NumericUpDown">
+    <Setter Property="CornerRadius" Value="8" />
+  </Style>
+  <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+    <Setter Property="BorderBrush" Value="{DynamicResource KtAccentBrush}" />
+  </Style>
+  <Style Selector="ProgressBar">
+    <Setter Property="Foreground" Value="{DynamicResource KtAccentBrush}" />
+    <Setter Property="Background" Value="{DynamicResource KtBorderBrush}" />
+  </Style>
+
+  <!-- Menus and flyouts -->
+  <Style Selector="Menu">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="MenuItem">
+    <Setter Property="CornerRadius" Value="6" />
+  </Style>
+
+  <!-- Tabs (settings): pill headers over one rounded sheet. -->
+  <Style Selector="TabControl">
+    <Setter Property="Padding" Value="4" />
+    <Setter Property="Background" Value="{DynamicResource KtSurfaceBrush}" />
+    <Setter Property="CornerRadius" Value="16" />
+  </Style>
+  <Style Selector="TabItem">
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="Padding" Value="14,6" />
+    <Setter Property="Margin" Value="4,6,0,6" />
+    <Setter Property="MinHeight" Value="30" />
+    <Setter Property="CornerRadius" Value="15" />
+    <Setter Property="Foreground" Value="{DynamicResource KtTextMutedBrush}" />
+  </Style>
+  <Style Selector="TabItem /template/ :is(Control)#PART_SelectedPipe">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+  <Style Selector="TabItem:pointerover">
+    <Setter Property="Background" Value="{DynamicResource KtHoverBrush}" />
+  </Style>
+  <Style Selector="TabItem:selected, TabItem:selected:pointerover">
+    <Setter Property="Background" Value="{DynamicResource KtSurfaceRaisedBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource KtAccentBrush}" />
+  </Style>
+  <Style Selector="CheckBox">
+    <Setter Property="CornerRadius" Value="6" />
+  </Style>
+
+  <!-- Dialogs -->
+  <Style Selector="TextBlock.dialogTitle">
+    <Setter Property="FontSize" Value="18" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="Border.footer">
+    <Setter Property="Padding" Value="20,12" />
+  </Style>
+
+  <!-- Posts grid -->
+  <Style Selector="ListBox.grid > ListBoxItem">
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="Margin" Value="3" />
+    <Setter Property="CornerRadius" Value="14" />
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="ListBox.grid > ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter, ListBox.grid > ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter, ListBox.grid > ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="Border.tile">
+    <Setter Property="Background" Value="{DynamicResource KtSurfaceRaisedBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="2" />
+    <Setter Property="CornerRadius" Value="14" />
+    <Setter Property="ClipToBounds" Value="True" />
+  </Style>
+  <Style Selector="ListBoxItem:selected Border.tile">
+    <Setter Property="BorderBrush" Value="{DynamicResource KtAccentBrush}" />
+  </Style>
+  <Style Selector="ListBoxItem:selected:pointerover Border.tile">
+    <Setter Property="BorderBrush" Value="{DynamicResource KtAccentBrush}" />
+  </Style>
+  <Style Selector="Border.caption">
+    <Setter Property="Background" Value="{DynamicResource KtScrimGradientBrush}" />
+    <Setter Property="Opacity" Value="0" />
+    <Setter Property="Transitions">
+      <Transitions><DoubleTransition Property="Opacity" Duration="0:0:0.15" /></Transitions>
+    </Setter>
+  </Style>
+  <Style Selector="ListBoxItem:pointerover Border.caption, ListBoxItem:selected Border.caption">
+    <Setter Property="Opacity" Value="1" />
+  </Style>
+  <!-- Hover: the picture eases in a little while the caption and quick actions fade up. -->
+  <Style Selector="Image.thumb">
+    <Setter Property="RenderTransformOrigin" Value="50%,50%" />
+    <Setter Property="Transitions">
+      <Transitions><TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.25" Easing="CubicEaseOut" /></Transitions>
+    </Setter>
+  </Style>
+  <Style Selector="ListBoxItem:pointerover Image.thumb">
+    <Setter Property="RenderTransform" Value="scale(1.06)" />
+  </Style>
+  <Style Selector="Button.overlay">
+    <Setter Property="Width" Value="28" />
+    <Setter Property="Height" Value="28" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="CornerRadius" Value="14" />
+    <Setter Property="Background" Value="#33FFFFFF" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Button.overlay Path.ico">
+    <Setter Property="Width" Value="14" />
+    <Setter Property="Height" Value="14" />
+    <Setter Property="Stroke" Value="White" />
+  </Style>
+  <Style Selector="Button.overlay:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="#59FFFFFF" />
+  </Style>
+  <Style Selector="Button.overlay.on Path.ico">
+    <Setter Property="Stroke" Value="{DynamicResource KtAccentBrush}" />
+  </Style>
+
+  <Style Selector="Button.icon.on Path.ico">
+    <Setter Property="Stroke" Value="{DynamicResource KtAccentBrush}" />
+    <Setter Property="Fill" Value="{DynamicResource KtAccentBrush}" />
+  </Style>
+
+  <!-- Base text size (Settings > General > Text size): every window inherits it -->
+  <Style Selector="Window">
+    <Setter Property="FontSize" Value="{DynamicResource KtBaseFontSize}" />
+  </Style>
+
+  <!-- Privacy mode (F9): thumbnails are blurred while the window carries the class -->
+  <Style Selector="Window.privacy Image.thumb">
+    <Setter Property="Effect"><BlurEffect Radius="28" /></Setter>
+  </Style>
+
+  <!-- Search-pill chip (posts / pools) -->
+  <Style Selector="ToggleButton.chip">
+    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="Padding" Value="10,3" />
+    <Setter Property="MinHeight" Value="26" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="{DynamicResource KtBorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Foreground" Value="{DynamicResource KtTextMutedBrush}" />
+  </Style>
+  <Style Selector="ToggleButton.chip:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource KtHoverBrush}" />
+  </Style>
+  <Style Selector="ToggleButton.chip:checked /template/ ContentPresenter#PART_ContentPresenter, ToggleButton.chip:checked:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource KtAccentBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource KtOnAccentBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+  </Style>
+
+  <!-- Tooltips and the post hover card -->
+  <Style Selector="ToolTip">
+    <Setter Property="Background" Value="{DynamicResource KtSurfaceRaisedBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource KtBorderBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource KtTextBrush}" />
+    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="Padding" Value="10,7" />
+  </Style>
+  <Style Selector="Border.rating">
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="Padding" Value="8,2" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Border.rating TextBlock">
+    <Setter Property="FontSize" Value="11" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="Border.rating.safe">
+    <Setter Property="BorderBrush" Value="{DynamicResource KtSuccessBrush}" />
+  </Style>
+  <Style Selector="Border.rating.safe TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource KtSuccessBrush}" />
+  </Style>
+  <Style Selector="Border.rating.questionable">
+    <Setter Property="BorderBrush" Value="{DynamicResource KtAccentBrush}" />
+  </Style>
+  <Style Selector="Border.rating.questionable TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource KtAccentBrush}" />
+  </Style>
+  <Style Selector="Border.rating.explicit">
+    <Setter Property="BorderBrush" Value="{DynamicResource KtDangerBrush}" />
+  </Style>
+  <Style Selector="Border.rating.explicit TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource KtDangerBrush}" />
+  </Style>
+  <Style Selector="Border.tagchip">
+    <Setter Property="Background" Value="{DynamicResource KtSurfaceBrush}" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="7,2" />
+    <Setter Property="Margin" Value="0,0,4,4" />
+  </Style>
+  <Style Selector="Border.tagchip TextBlock">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="Foreground" Value="{DynamicResource KtTextBrush}" />
+  </Style>
+
+  <!-- Download queue entries -->
+  <Style Selector="Border.queueItem">
+    <Setter Property="Background" Value="{DynamicResource KtSurfaceRaisedBrush}" />
+    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="Padding" Value="12,10" />
+    <Setter Property="Margin" Value="0,0,0,6" />
+  </Style>
+  <Style Selector="TextBlock.failed">
+    <Setter Property="Foreground" Value="{DynamicResource KtDangerBrush}" />
+  </Style>
+  <Style Selector="Border.badge">
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="Padding" Value="7,2" />
+    <Setter Property="HorizontalAlignment" Value="Right" />
+  </Style>
+  <Style Selector="Border.badge TextBlock">
+    <Setter Property="FontSize" Value="10.5" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{DynamicResource KtOnAccentBrush}" />
+  </Style>
+
+  <!-- Lists (queue, pools, reading) -->
+  <Style Selector="ListBox.rows > ListBoxItem">
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Margin" Value="0,1" />
+    <Setter Property="Padding" Value="8,6" />
+  </Style>
+</Styles>

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=KuroTsukiV2
+GenericName=Booru client
+Comment=Desktop client for booru image sites
+Exec=kurotsukiv2
+Icon=kurotsukiv2
+Terminal=false
+Categories=Graphics;Network;
+Keywords=booru;danbooru;gelbooru;e621;manga;
+StartupWMClass=kurotsuki-next
